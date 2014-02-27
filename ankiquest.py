@@ -1,21 +1,31 @@
 # -*- coding: utf-8 -*-
 
-import pdb
 import os, sys
 
-from aqt import mw
-from aqt.utils import showInfo
-from aqt.qt import *
-from aqt import forms
+#Check to see if we're running inside Anki
+try:
+	from aqt import mw
+	from aqt.utils import showInfo
+	from aqt.qt import *
+	from aqt import forms
+	AQ_DEBUG = False
+except:
+	AQ_DEBUG = True
 	
 def anki_quester():
 	global libtcod
+	
+	if not AQ_DEBUG:
+		AQ_PATH = os.chdir(os.path.join(mw.addonManager.addonsFolder(), "ankiquester/"))
+	else:
+		AQ_PATH = os.path.abspath(os.curdir)
+
 	#This sucks right now, but the libtcod website is broken, so しかたない
 	if sys.platform.find("win32") != -1:
-		os.chdir(os.path.join(mw.addonManager.addonsFolder(), "/ankiquester/libtcod151"))
+		os.chdir(os.path.join(AQ_PATH, "libtcod151/"))
 		from libtcod151 import libtcodpy
 	elif sys.platform.find("darwin") != -1:
-		os.chdir(os.path.join(mw.addonManager.addonsFolder(), "/ankiquester/libtcod160"))
+		os.chdir(os.path.join(AQ_PATH, "libtcod160/"))
 		from libtcod160 import libtcodpy
 	else:
 		showInfo("Unsupported Platform")
@@ -48,10 +58,12 @@ def anki_quester():
 		erase_entities()
 		handle_key(libtcod.console_wait_for_keypress(True))
 
-# create a new menu item, connect our function, and add it to the menu
-action = QAction("AnkiQuest", mw)
-mw.connect(action, SIGNAL("triggered()"), anki_quester)
-mw.form.menuTools.addAction(action)
+
+if not AQ_DEBUG:
+	# create a new menu item, connect our function, and add it to the menu
+	action = QAction("AnkiQuest", mw)
+	mw.connect(action, SIGNAL("triggered()"), anki_quester)
+	mw.form.menuTools.addAction(action)
 
 class WorldMechanics:
 	def __init__(self):
@@ -98,4 +110,6 @@ def draw_entities():
 def erase_entities():
 	for entity in Entities:
 		libtcod.console_put_char(con, entity.X, entity.Y, " ", libtcod.BKGND_NONE)
-	 
+
+if __name__ == "__main__":
+	anki_quester()
