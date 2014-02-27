@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, sys
+import os, sys, random
 
 #Check to see if we're running inside Anki
 try:
@@ -13,14 +13,15 @@ except:
 	AQ_DEBUG = True
 	
 def anki_quester():
+	#Set up libtcod
+	#This sucks right now, but the libtcod website is broken, so しかたない
 	global libtcod
 	
-	if not AQ_DEBUG:
-		AQ_PATH = os.chdir(os.path.join(mw.addonManager.addonsFolder(), "ankiquester/"))
-	else:
+	if AQ_DEBUG:
 		AQ_PATH = os.path.abspath(os.curdir)
-
-	#This sucks right now, but the libtcod website is broken, so しかたない
+	else:
+		AQ_PATH = os.path.join(mw.addonManager.addonsFolder(), "ankiquester/")
+	
 	if sys.platform.find("win32") != -1:
 		os.chdir(os.path.join(AQ_PATH, "libtcod151/"))
 		from libtcod151 import libtcodpy
@@ -33,83 +34,90 @@ def anki_quester():
 	
 	libtcod = libtcodpy
 	
-	#Our game stuff
-	global Player, Entities, con
-	Entities = []
-	Player = Entity()
-	ckky = Entity()
-	ckky.X = 40
-	ckky.Y = 25
-	ckky.Tile = "d"
-	
-	#Set up libtcod
-	SCREEN_WIDTH = 80
-	SCREEN_HEIGHT = 50
-	LIMIT_FPS = 10
-	libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
-	libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'AnkiQuest', False)
-	libtcod.sys_set_fps(LIMIT_FPS)
-	con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
+	#Set up our game objects and our update loop
+	aq = AnkiQuester()
+	io = IOController()
 	
 	while not libtcod.console_is_window_closed():
-		draw_entities()
-		libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
-		libtcod.console_flush()
-		erase_entities()
-		handle_key(libtcod.console_wait_for_keypress(True))
+		io.Update(aq)
 
 
+#If we're in Anki then we add the AQ menu item
 if not AQ_DEBUG:
-	# create a new menu item, connect our function, and add it to the menu
 	action = QAction("AnkiQuest", mw)
 	mw.connect(action, SIGNAL("triggered()"), anki_quester)
 	mw.form.menuTools.addAction(action)
 
-class WorldMechanics:
+class AnkiQuester:
 	def __init__(self):
-		pass
+		self.Player = Entity()
+		self.NPEs = [Entity(None, random.randint(0,79), random.randint(0, 49), "d")]
 	
-	def Fudge(srcvalue, fudgeratio):
-		return srcvalue
+	def PlayerMove(self, direction):
+		oldxy = (self.Player.X, self.Player.Y)
+		
+		if direction == "Up": self.Player.Y -= 1
+		elif direction == "Down": self.Player.Y += 1
+		elif direction == "Left": self.Player.X -= 1
+		elif direction == "Right": self.Player.X += 1
+		
+		collisionentity = self.CollisionCheck(self.Player.X, self.Player.Y)
+		if collisionentity != False:
+			self.Player.X = oldxy[0]
+			self.Player.Y = oldxy[1]
+			#simple code to vanquish an enemy and spawn a new one
+			if collisionentity in self.NPEs:
+				self.NPEs.remove(collisionentity)
+				self.NPEs.append(Entity(None, random.randint(0,79), random.randint(0, 49), "d"))
+		
+	def CollisionCheck(self, x, y):
+		#check for collision on an existing entity, this is inefficient, but I don't care right now
+		for entity in self.NPEs:
+			if (entity.X == x) and (entity.Y == y): return entity
+			
+		return False
 	
-	def Attack(attacker, defender):
-		defender.TakeDamage(self.Fudge(attacker.Stats["Strength"], defender.Stats["Luck"]))
+	def Entities(self):
+		return [self.Player] + self.NPEs
+		
+class IOController:
+	def __init__(self):
+		#Set up libtcod
+		self.SCREEN_WIDTH = 80
+		self.SCREEN_HEIGHT = 50
+		self.LIMIT_FPS = 10
+		libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
+		libtcod.console_init_root(self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 'AnkiQuest', False)
+		libtcod.sys_set_fps(self.LIMIT_FPS)
+		self.con = libtcod.console_new(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
+	
+	def HandleKeys(self, state, key):
+		if libtcod.console_is_key_pressed(libtcod.KEY_UP): state.PlayerMove("Up")
+		elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN): state.PlayerMove("Down")
+		elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT): state.PlayerMove("Left")
+		elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT): state.PlayerMove("Right")
+	
+	def DrawEntities(self, entities):
+		for entity in entities:
+			libtcod.console_put_char(self.con, entity.X, entity.Y, entity.Tile, libtcod.BKGND_NONE)
+	
+	def EraseEntities(self, entities):
+		for entity in entities:
+			libtcod.console_put_char(self.con, entity.X, entity.Y, " ", libtcod.BKGND_NONE)
+	
+	def Update(self, state):
+			self.DrawEntities(state.Entities())
+			libtcod.console_blit(self.con, 0, 0, self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 0, 0, 0)
+			libtcod.console_flush()
+			self.EraseEntities(state.Entities())
+			self.HandleKeys(state, libtcod.console_wait_for_keypress(True))
 		
 class Entity:
-	def __init__(self, initstats=None):
-		if not initstats:
-			self.Stats =   {"HP": 100,
-							"Strength": 10,
-							"Speed": 100,
-							"Luck": 10,
-							}
-		self.X = 0
-		self.Y = 0
-		self.Tile = "@"
-		Entities.append(self)
-		
-	def TakeDamage(self, amount):
-		opponent.Stats["HP"] -= amount
-		
-def handle_key(key):
- 
-	#movement keys
-	if libtcod.console_is_key_pressed(libtcod.KEY_UP):
-		Player.Y -= 1
-	elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN):
-		Player.Y += 1
-	elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT):
-		Player.X -= 1
-	elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT):
-		Player.X += 1
-
-def draw_entities():
-	for entity in Entities:
-		libtcod.console_put_char(con, entity.X, entity.Y, entity.Tile, libtcod.BKGND_NONE)
-	
-def erase_entities():
-	for entity in Entities:
-		libtcod.console_put_char(con, entity.X, entity.Y, " ", libtcod.BKGND_NONE)
+	def __init__(self, initstats = {"HP": 100, "Strength": 10, "Speed": 100, "Luck": 10}, xpos = 0, ypos = 0, tile = "@"):
+		self.Stats = initstats
+		self.X = xpos
+		self.Y = ypos
+		self.Tile = tile
 
 if __name__ == "__main__":
 	anki_quester()
