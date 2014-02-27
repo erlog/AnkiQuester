@@ -1,8 +1,18 @@
 # -*- coding: utf-8 -*-
 
 import pdb
-import libtcodpy as libtcod
-import sys
+import os, sys
+
+#This sucks right now, but the libtcod website is broken, so しかたない
+if sys.platform.find("win32") != -1:
+	os.chdir("./libtcod151")
+	from libtcod151 import libtcodpy as libtcod
+elif sys.platform.find("darwin") != -1:
+	os.chdir("./libtcod160")
+	from libtcod160 import libtcodpy as libtcod
+else:
+	sys.exit("Unsupported platform.")
+
 
 class WorldMechanics:
 	def __init__(self):
