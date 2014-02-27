@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, sys, random
+import os, sys, random, pdb
 
 #Check to see if we're running inside Anki
 try:
@@ -8,6 +8,7 @@ try:
 	from aqt.utils import showInfo
 	from aqt.qt import *
 	from aqt import forms
+	from anki.hooks import wrap
 	AQ_DEBUG = False
 except:
 	AQ_DEBUG = True
@@ -15,7 +16,7 @@ except:
 def anki_quester():
 	#Set up libtcod
 	#This sucks right now, but the libtcod website is broken, so しかたない
-	global libtcod
+	global libtcod, AQGameInstance, AQIOController, AQLastAnswer
 	
 	if AQ_DEBUG:
 		AQ_PATH = os.path.abspath(os.curdir)
@@ -34,20 +35,29 @@ def anki_quester():
 	
 	libtcod = libtcodpy
 	
-	#Set up our game objects and our update loop
-	aq = AnkiQuester()
-	io = IOController()
+	#Set up our game objects
+	AQGameInstance = AnkiQuester()
+	AQIOController = IOController()
 	
-	while not libtcod.console_is_window_closed():
-		io.Update(aq)
+	#hook the review process to construct our game loop
+	if not AQ_DEBUG:
+		mw.reviewer._answerCard = catch_review
+	
+	while not libtcod.console_is_window_closed(): 
+		AQIOController.RefreshWindow(AQGameInstance)
 
+def catch_review(ease):
+	AQGameInstance.ShuffleNPEs()
+	AQIOController.RefreshWindow(AQGameInstance)
+	OLD_answerCard(ease)
 
-#If we're in Anki then we add the AQ menu item
 if not AQ_DEBUG:
+	#If we're in Anki then we add the AQ menu item and clone _answerCard for later
 	action = QAction("AnkiQuest", mw)
 	mw.connect(action, SIGNAL("triggered()"), anki_quester)
 	mw.form.menuTools.addAction(action)
-
+	OLD_answerCard = mw.reviewer._answerCard
+	
 class AnkiQuester:
 	def __init__(self):
 		self.Player = Entity()
@@ -79,6 +89,11 @@ class AnkiQuester:
 	
 	def Entities(self):
 		return [self.Player] + self.NPEs
+	
+	def ShuffleNPEs(self):
+		for entity in self.NPEs:
+			entity.X = random.randint(0,79)
+			entity.Y = random.randint(0,49)
 		
 class IOController:
 	def __init__(self):
@@ -105,13 +120,13 @@ class IOController:
 		for entity in entities:
 			libtcod.console_put_char(self.con, entity.X, entity.Y, " ", libtcod.BKGND_NONE)
 	
-	def Update(self, state):
-			self.DrawEntities(state.Entities())
-			libtcod.console_blit(self.con, 0, 0, self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 0, 0, 0)
-			libtcod.console_flush()
-			self.EraseEntities(state.Entities())
-			self.HandleKeys(state, libtcod.console_wait_for_keypress(True))
-		
+	def RefreshWindow(self, state):
+		self.HandleKeys(state, libtcod.console_check_for_keypress())
+		self.DrawEntities(state.Entities())
+		libtcod.console_blit(self.con, 0, 0, self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 0, 0, 0)
+		libtcod.console_flush()
+		self.EraseEntities(state.Entities())
+			
 class Entity:
 	def __init__(self, initstats = {"HP": 100, "Strength": 10, "Speed": 100, "Luck": 10}, xpos = 0, ypos = 0, tile = "@"):
 		self.Stats = initstats
