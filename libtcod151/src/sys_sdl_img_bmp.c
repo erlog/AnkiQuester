@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -25,8 +25,10 @@
 * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifdef __HAIKU__
+#if defined (__HAIKU__) || defined (__ANDROID__)
 #include <SDL.h>
+#elif defined(TCOD_SDL2)
+#include <SDL2/SDL.h>
 #else
 #include <SDL/SDL.h>
 #endif

@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -101,6 +101,13 @@ TCODLIB_API TCOD_key_t TCOD_console_wait_for_keypress(bool flush);
 TCODLIB_API void TCOD_console_set_keyboard_repeat(int initial_delay, int interval);
 TCODLIB_API void TCOD_console_disable_keyboard_repeat();
 TCODLIB_API bool TCOD_console_is_key_pressed(TCOD_keycode_t key);
+
+/* ASCII paint file support */
+TCODLIB_API TCOD_console_t TCOD_console_from_file(const char *filename);
+TCODLIB_API bool TCOD_console_load_asc(TCOD_console_t con, const char *filename);
+TCODLIB_API bool TCOD_console_load_apf(TCOD_console_t con, const char *filename);
+TCODLIB_API bool TCOD_console_save_asc(TCOD_console_t con, const char *filename);
+TCODLIB_API bool TCOD_console_save_apf(TCOD_console_t con, const char *filename);
 
 TCODLIB_API TCOD_console_t TCOD_console_new(int w, int h);
 TCODLIB_API int TCOD_console_get_width(TCOD_console_t con);

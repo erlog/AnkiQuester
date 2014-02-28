@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,7 @@ TCODLIB_API uint32 TCOD_console_check_for_keypress_bitfield (int flags);
 TCODLIB_API uint32 TCOD_console_wait_for_keypress_bitfield (bool flush);
 TCODLIB_API void TCOD_console_fill_background(TCOD_console_t con, int *r, int *g, int *b);
 TCODLIB_API void TCOD_console_fill_foreground(TCOD_console_t con, int *r, int *g, int *b);
-TCODLIB_API void TCOD_console_fill_char(TCOD_console_t con, char *arr);
+TCODLIB_API void TCOD_console_fill_char(TCOD_console_t con, int *arr);
 
 TCODLIB_API void TCOD_console_double_hline(TCOD_console_t con,int x,int y, int l,
 					   TCOD_bkgnd_flag_t flag);
@@ -101,7 +101,7 @@ TCODLIB_API char *TCOD_console_print_return_string(TCOD_console_t con,int x,
 						   TCOD_alignment_t align, char *msg,
 						   bool can_split,
 						   bool count_only);
-
+TCODLIB_API void console_set_key_color_wrapper (TCOD_console_t con, colornum_t c);
 
 /* image module */
 

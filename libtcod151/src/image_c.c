@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -386,12 +386,19 @@ void TCOD_image_refresh_console(TCOD_image_t image, TCOD_console_t console) {
 void TCOD_image_save(TCOD_image_t image, const char *filename) {
 	image_data_t *img=(image_data_t *)image;
 	void *bitmap=NULL;
+	bool must_free=false;
 	if ( img->sys_img ) {
 		bitmap=img->sys_img;
 	} else if ( img->mipmaps ){
 		bitmap=TCOD_sys_create_bitmap(img->mipmaps[0].width, img->mipmaps[0].height, img->mipmaps[0].buf);
+		must_free=true;
 	}
-	if (bitmap) TCOD_sys_save_bitmap(bitmap, filename);
+	if (bitmap) {
+		TCOD_sys_save_bitmap(bitmap, filename);
+		if ( must_free ) {
+			TCOD_sys_delete_bitmap(bitmap);
+		}
+	}
 }
 
 void TCOD_image_set_key_color(TCOD_image_t image, TCOD_color_t key_color) {

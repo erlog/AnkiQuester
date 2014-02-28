@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,23 @@ TCODConsole * TCODConsole::root = NULL;
 TCODConsole::TCODConsole() {}
 TCODConsole::TCODConsole(int w, int h) {
 	data = TCOD_console_new(w,h);
+}
+
+TCODConsole::TCODConsole(const char *filename) {
+	data = TCOD_console_from_file(filename);
+}
+
+bool TCODConsole::loadAsc(const char *filename) {
+	return TCOD_console_load_asc(data,filename) != 0;
+}
+bool TCODConsole::saveAsc(const char *filename) const {
+	return TCOD_console_save_asc(data,filename) != 0;
+}
+bool TCODConsole::saveApf(const char *filename) const {
+	return TCOD_console_save_apf(data,filename) != 0;
+}
+bool TCODConsole::loadApf(const char *filename) {
+	return TCOD_console_load_apf(data,filename) != 0;
 }
 
 void TCODConsole::setCustomFont(const char *fontFile, int flags,int nbCharHoriz, int nbCharVertic) {

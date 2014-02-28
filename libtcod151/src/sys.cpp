@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,13 @@ void TCODSystem::forceFullscreenResolution(int width, int height) {
 
 void TCODSystem::setRenderer(TCOD_renderer_t renderer) {
 	TCOD_sys_set_renderer(renderer);
+}
+TCOD_event_t TCODSystem::waitForEvent(int eventMask, TCOD_key_t *key, TCOD_mouse_t *mouse, bool flush) {
+	return TCOD_sys_wait_for_event(eventMask,key,mouse,flush);
+}
+
+TCOD_event_t TCODSystem::checkForEvent(int eventMask, TCOD_key_t *key, TCOD_mouse_t *mouse) {
+	return TCOD_sys_check_for_event(eventMask,key,mouse);
 }
 
 TCOD_renderer_t TCODSystem::getRenderer() {
@@ -119,6 +126,14 @@ bool TCODSystem::fileExists(const char * filename, ...) {
 		fclose(in);
 	}
 	return ret;
+}
+
+bool TCODSystem::readFile(const char *filename, unsigned char **buf, uint32 *size) {
+	return TCOD_sys_read_file(filename,buf,size) != 0;
+}
+
+bool TCODSystem::writeFile(const char *filename, unsigned char *buf, uint32 size) {
+	return TCOD_sys_write_file(filename,buf,size) != 0;
 }
 
 // clipboard stuff

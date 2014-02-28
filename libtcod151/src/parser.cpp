@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -35,24 +35,29 @@ const char *TCODParserStruct::getName() const {
 	return TCOD_struct_get_name(data);
 }
 
-void TCODParserStruct::addProperty(const char *propname, TCOD_value_type_t type, bool mandatory) {
+TCODParserStruct* TCODParserStruct::addProperty(const char *propname, TCOD_value_type_t type, bool mandatory) {
 	TCOD_struct_add_property(data,propname,type,mandatory);
+	return this;
 }
 
-void TCODParserStruct::addListProperty(const char *propname, TCOD_value_type_t type, bool mandatory) {
+TCODParserStruct* TCODParserStruct::addListProperty(const char *propname, TCOD_value_type_t type, bool mandatory) {
 	TCOD_struct_add_list_property(data,propname,type,mandatory);
+	return this;
 }
 
-void TCODParserStruct::addValueList(const char *propname, const char **value_list, bool mandatory) {
+TCODParserStruct* TCODParserStruct::addValueList(const char *propname, const char **value_list, bool mandatory) {
 	TCOD_struct_add_value_list(data,propname,value_list,mandatory);
+	return this;
 }
 
-void TCODParserStruct::addFlag(const char *propname) {
+TCODParserStruct* TCODParserStruct::addFlag(const char *propname) {
 	TCOD_struct_add_flag(data,propname);
+	return this;
 }
 
-void TCODParserStruct::addStructure(TCODParserStruct *sub_entity) {
+TCODParserStruct* TCODParserStruct::addStructure(TCODParserStruct *sub_entity) {
 	TCOD_struct_add_structure(data,sub_entity->data);
+	return this;
 }
 
 bool TCODParserStruct::isPropertyMandatory(const char *propname) const {
@@ -78,7 +83,11 @@ extern "C" uint8 new_struct(TCOD_parser_struct_t def,const char *name) {
 			return listener->parserNewStruct(parser,*idef,name) ? 1 : 0;
 		}
 	}
-	return 0;
+	// not found. autodeclaring struct
+	TCODParserStruct *idef = new TCODParserStruct();
+	idef->data = def;
+	parser->defs.push(idef);
+	return listener->parserNewStruct(parser,idef,name) ? 1 : 0;
 }
 extern "C" uint8 new_flag(const char *name) {
 	return listener->parserFlag(parser,name) ? 1 : 0;

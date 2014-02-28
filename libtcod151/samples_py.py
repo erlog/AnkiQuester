@@ -19,9 +19,9 @@ SAMPLE_SCREEN_WIDTH = 46
 SAMPLE_SCREEN_HEIGHT = 20
 SAMPLE_SCREEN_X = 20
 SAMPLE_SCREEN_Y = 10
-font = os.path.join('data', 'fonts', 'consolas10x10_gs_tc.png')
+font = os.path.join(b'data', b'fonts', b'consolas10x10_gs_tc.png')
 libtcod.console_set_custom_font(font, libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
-libtcod.console_init_root(80, 50, 'libtcod python sample', False)
+libtcod.console_init_root(80, 50, b'libtcod python sample', False)
 sample_console = libtcod.console_new(SAMPLE_SCREEN_WIDTH, SAMPLE_SCREEN_HEIGHT)
 
 #############################################
@@ -29,81 +29,81 @@ sample_console = libtcod.console_new(SAMPLE_SCREEN_WIDTH, SAMPLE_SCREEN_HEIGHT)
 #############################################
 # parser declaration
 if True:
-    print '***** File Parser test *****'
+    print ('***** File Parser test *****')
     parser=libtcod.parser_new()
-    struct=libtcod.parser_new_struct(parser, 'myStruct')
-    libtcod.struct_add_property(struct, 'bool_field', libtcod.TYPE_BOOL, True)
-    libtcod.struct_add_property(struct, 'char_field', libtcod.TYPE_CHAR, True)
-    libtcod.struct_add_property(struct, 'int_field', libtcod.TYPE_INT, True)
-    libtcod.struct_add_property(struct, 'float_field', libtcod.TYPE_FLOAT, True)
-    libtcod.struct_add_property(struct, 'color_field', libtcod.TYPE_COLOR, True)
-    libtcod.struct_add_property(struct, 'dice_field', libtcod.TYPE_DICE, True)
-    libtcod.struct_add_property(struct, 'string_field', libtcod.TYPE_STRING,
+    struct=libtcod.parser_new_struct(parser, b'myStruct')
+    libtcod.struct_add_property(struct, b'bool_field', libtcod.TYPE_BOOL, True)
+    libtcod.struct_add_property(struct, b'char_field', libtcod.TYPE_CHAR, True)
+    libtcod.struct_add_property(struct, b'int_field', libtcod.TYPE_INT, True)
+    libtcod.struct_add_property(struct, b'float_field', libtcod.TYPE_FLOAT, True)
+    libtcod.struct_add_property(struct, b'color_field', libtcod.TYPE_COLOR, True)
+    libtcod.struct_add_property(struct, b'dice_field', libtcod.TYPE_DICE, True)
+    libtcod.struct_add_property(struct, b'string_field', libtcod.TYPE_STRING,
                                 True)
-    libtcod.struct_add_list_property(struct, 'bool_list', libtcod.TYPE_BOOL,
+    libtcod.struct_add_list_property(struct, b'bool_list', libtcod.TYPE_BOOL,
                                 True)
-    libtcod.struct_add_list_property(struct, 'char_list', libtcod.TYPE_CHAR,
+    libtcod.struct_add_list_property(struct, b'char_list', libtcod.TYPE_CHAR,
                                 True)
-    libtcod.struct_add_list_property(struct, 'integer_list', libtcod.TYPE_INT,
+    libtcod.struct_add_list_property(struct, b'integer_list', libtcod.TYPE_INT,
                                 True)
-    libtcod.struct_add_list_property(struct, 'float_list', libtcod.TYPE_FLOAT,
+    libtcod.struct_add_list_property(struct, b'float_list', libtcod.TYPE_FLOAT,
                                 True)
-    libtcod.struct_add_list_property(struct, 'string_list', libtcod.TYPE_STRING,
+    libtcod.struct_add_list_property(struct, b'string_list', libtcod.TYPE_STRING,
                                 True)
-    libtcod.struct_add_list_property(struct, 'color_list', libtcod.TYPE_COLOR,
+    libtcod.struct_add_list_property(struct, b'color_list', libtcod.TYPE_COLOR,
                                 True)
 ##    # dice lists doesn't work yet
-##    libtcod.struct_add_list_property(struct, 'dice_list', libtcod.TYPE_DICE,
+##    libtcod.struct_add_list_property(struct, b'dice_list', libtcod.TYPE_DICE,
 ##                                True)
 
     # default listener
-    print '***** Default listener *****'
-    libtcod.parser_run(parser, os.path.join('data','cfg','sample.cfg'))
-    print 'bool_field : ', \
-          libtcod.parser_get_bool_property(parser, 'myStruct.bool_field')
-    print 'char_field : ', \
-          libtcod.parser_get_char_property(parser, 'myStruct.char_field')
-    print 'int_field : ', \
-          libtcod.parser_get_int_property(parser, 'myStruct.int_field')
-    print 'float_field : ', \
-          libtcod.parser_get_float_property(parser, 'myStruct.float_field')
-    print 'color_field : ', \
-          libtcod.parser_get_color_property(parser, 'myStruct.color_field')
-    print 'dice_field : ', \
-          libtcod.parser_get_dice_property(parser, 'myStruct.dice_field')
-    print 'string_field : ', \
-          libtcod.parser_get_string_property(parser, 'myStruct.string_field')
-    print 'bool_list : ', \
-          libtcod.parser_get_list_property(parser, 'myStruct.bool_list',
-                                                           libtcod.TYPE_BOOL)
-    print 'char_list : ', \
-          libtcod.parser_get_list_property(parser, 'myStruct.char_list',
-                                                           libtcod.TYPE_CHAR)
-    print 'integer_list : ', \
-          libtcod.parser_get_list_property(parser, 'myStruct.integer_list',
-                                                           libtcod.TYPE_INT)
-    print 'float_list : ', \
-          libtcod.parser_get_list_property(parser, 'myStruct.float_list',
-                                                           libtcod.TYPE_FLOAT)
-    print 'string_list : ', \
-          libtcod.parser_get_list_property(parser, 'myStruct.string_list',
-                                                           libtcod.TYPE_STRING)
-    print 'color_list : ', \
-          libtcod.parser_get_list_property(parser, 'myStruct.color_list',
-                                                           libtcod.TYPE_COLOR)
-##    print 'dice_list : ', \
-##          libtcod.parser_get_list_property(parser, 'myStruct.dice_list',
-##                                                           libtcod.TYPE_DICE)
+    print ('***** Default listener *****')
+    libtcod.parser_run(parser, os.path.join(b'data',b'cfg',b'sample.cfg'))
+    print ('bool_field : ', \
+          libtcod.parser_get_bool_property(parser, b'myStruct.bool_field'))
+    print ('char_field : ', \
+          libtcod.parser_get_char_property(parser, b'myStruct.char_field'))
+    print ('int_field : ', \
+          libtcod.parser_get_int_property(parser, b'myStruct.int_field'))
+    print ('float_field : ', \
+          libtcod.parser_get_float_property(parser, b'myStruct.float_field'))
+    print ('color_field : ', \
+          libtcod.parser_get_color_property(parser, b'myStruct.color_field'))
+    print ('dice_field : ', \
+          libtcod.parser_get_dice_property(parser, b'myStruct.dice_field'))
+    print ('string_field : ', \
+          libtcod.parser_get_string_property(parser, b'myStruct.string_field'))
+    print ('bool_list : ', \
+          libtcod.parser_get_list_property(parser, b'myStruct.bool_list',
+                                                           libtcod.TYPE_BOOL))
+    print ('char_list : ', \
+          libtcod.parser_get_list_property(parser, b'myStruct.char_list',
+                                                           libtcod.TYPE_CHAR))
+    print ('integer_list : ', \
+          libtcod.parser_get_list_property(parser, b'myStruct.integer_list',
+                                                           libtcod.TYPE_INT))
+    print ('float_list : ', \
+          libtcod.parser_get_list_property(parser, b'myStruct.float_list',
+                                                           libtcod.TYPE_FLOAT))
+    print ('string_list : ', \
+          libtcod.parser_get_list_property(parser, b'myStruct.string_list',
+                                                           libtcod.TYPE_STRING))
+    print ('color_list : ', \
+          libtcod.parser_get_list_property(parser, b'myStruct.color_list',
+                                                           libtcod.TYPE_COLOR))
+##    print ('dice_list : ', \
+##          libtcod.parser_get_list_property(parser, b'myStruct.dice_list',
+##                                                           libtcod.TYPE_DICE))
 
     # custom listener
-    print '***** Custom listener *****'
+    print ('***** Custom listener *****')
     class MyListener:
         def new_struct(self, struct, name):
-            print 'new structure type', libtcod.struct_get_name(struct), \
-                  ' named ', name
+            print ('new structure type', libtcod.struct_get_name(struct), \
+                  ' named ', name )
             return True
         def new_flag(self, name):
-            print 'new flag named ', name
+            print ('new flag named ', name)
             return True
         def new_property(self,name, typ, value):
             type_names = ['NONE', 'BOOL', 'CHAR', 'INT', 'FLOAT', 'STRING', \
@@ -111,17 +111,17 @@ if True:
             type_name = type_names[typ & 0xff]
             if typ & libtcod.TYPE_LIST:
                 type_name = 'LIST<%s>' % type_name
-            print 'new property named ', name,' type ',type_name, \
-                      ' value ', value
+            print ('new property named ', name,' type ',type_name, \
+                      ' value ', value)
             return True
         def end_struct(self, struct, name):
-            print 'end structure type', libtcod.struct_get_name(struct), \
-                  ' named ', name
+            print ('end structure type', libtcod.struct_get_name(struct), \
+                  ' named ', name)
             return True
         def error(self,msg):
-            print 'error : ', msg
+            print ('error : ', msg)
             return True
-    libtcod.parser_run(parser, os.path.join('data','cfg','sample.cfg'), MyListener())
+    libtcod.parser_run(parser, os.path.join(b'data',b'cfg',b'sample.cfg'), MyListener())
 #############################################
 # end of parser unit test
 #############################################
@@ -137,8 +137,8 @@ tc_cols = [libtcod.Color(50, 40, 150),
 tc_dirr = [1, -1, 1, 1]
 tc_dirg = [1, -1, -1, 1]
 tc_dirb = [1, 1, 1, -1]
-def render_colors(first, key):
-    global tc_cols, tc_dirr, tc_dirg, tc_dirb
+def render_colors(first, key, mouse):
+    global tc_cols, tc_dirr, tc_dirg, tc_dirb, tc_fast
 
     TOPLEFT = 0
     TOPRIGHT = 1
@@ -147,6 +147,7 @@ def render_colors(first, key):
     if first:
         libtcod.sys_set_fps(0)
         libtcod.console_clear(sample_console)
+        tc_fast = False
     for c in range(4):
         # move each corner color
         component=libtcod.random_get_int(None, 0, 2)
@@ -169,39 +170,67 @@ def render_colors(first, key):
             elif tc_cols[c].b == 0:
                 tc_dirb[c] = 1
 
-    # interpolate corner colors
-    for x in range(SAMPLE_SCREEN_WIDTH):
-        xcoef = float(x) / (SAMPLE_SCREEN_WIDTH - 1)
-        top = libtcod.color_lerp(tc_cols[TOPLEFT], tc_cols[TOPRIGHT], xcoef)
-        bottom = libtcod.color_lerp(tc_cols[BOTTOMLEFT], tc_cols[BOTTOMRIGHT],
-                                    xcoef)
-        for y in range(SAMPLE_SCREEN_HEIGHT):
-            ycoef = float(y) / (SAMPLE_SCREEN_HEIGHT - 1)
-            curColor = libtcod.color_lerp(top, bottom, ycoef)
-            libtcod.console_set_char_background(sample_console, x, y, curColor,
-                                     libtcod.BKGND_SET)
-    textColor = libtcod.console_get_char_background(sample_console,
-                                         SAMPLE_SCREEN_WIDTH / 2, 5)
-    textColor.r = 255 - textColor.r
-    textColor.g = 255 - textColor.g
-    textColor.b = 255 - textColor.b
-    libtcod.console_set_default_foreground(sample_console, textColor)
-    for x in range(SAMPLE_SCREEN_WIDTH):
-        for y in range(SAMPLE_SCREEN_HEIGHT):
-            col = libtcod.console_get_char_background(sample_console, x, y)
-            col = libtcod.color_lerp(col, libtcod.black, 0.5)
-            c = libtcod.random_get_int(None, ord('a'), ord('z'))
-            libtcod.console_set_default_foreground(sample_console, col)
-            libtcod.console_put_char(sample_console, x, y, c,
-                                     libtcod.BKGND_NONE)
+    if not tc_fast:
+        # interpolate corner colors
+        for x in range(SAMPLE_SCREEN_WIDTH):
+            xcoef = float(x) / (SAMPLE_SCREEN_WIDTH - 1)
+            top = libtcod.color_lerp(tc_cols[TOPLEFT], tc_cols[TOPRIGHT], xcoef)
+            bottom = libtcod.color_lerp(tc_cols[BOTTOMLEFT], tc_cols[BOTTOMRIGHT],
+                                        xcoef)
+            for y in range(SAMPLE_SCREEN_HEIGHT):
+                ycoef = float(y) / (SAMPLE_SCREEN_HEIGHT - 1)
+                curColor = libtcod.color_lerp(top, bottom, ycoef)
+                libtcod.console_set_char_background(sample_console, x, y, curColor,
+                                         libtcod.BKGND_SET)
+        textColor = libtcod.console_get_char_background(sample_console,
+                                             SAMPLE_SCREEN_WIDTH // 2, 5)
+        textColor.r = 255 - textColor.r
+        textColor.g = 255 - textColor.g
+        textColor.b = 255 - textColor.b
+        libtcod.console_set_default_foreground(sample_console, textColor)
+        for x in range(SAMPLE_SCREEN_WIDTH):
+            for y in range(SAMPLE_SCREEN_HEIGHT):
+                col = libtcod.console_get_char_background(sample_console, x, y)
+                col = libtcod.color_lerp(col, libtcod.black, 0.5)
+                c = libtcod.random_get_int(None, ord('a'), ord('z'))
+                libtcod.console_set_default_foreground(sample_console, col)
+                libtcod.console_put_char(sample_console, x, y, c,
+                                         libtcod.BKGND_NONE)
+    else:
+        # same, but using the ConsoleBuffer class to speed up rendering
+        buffer = libtcod.ConsoleBuffer(SAMPLE_SCREEN_WIDTH, SAMPLE_SCREEN_HEIGHT)  # initialize buffer
+        c = libtcod.random_get_int(None, ord('a'), ord('z'))
+        for x in xrange(SAMPLE_SCREEN_WIDTH):
+            xcoef = float(x) / (SAMPLE_SCREEN_WIDTH - 1)
+            top = libtcod.color_lerp(tc_cols[TOPLEFT], tc_cols[TOPRIGHT], xcoef)
+            bottom = libtcod.color_lerp(tc_cols[BOTTOMLEFT], tc_cols[BOTTOMRIGHT], xcoef)
+            for y in xrange(SAMPLE_SCREEN_HEIGHT):
+                # for maximum speed, we avoid using any libtcod function in
+                # this inner loop, except for the ConsoleBuffer's functions.
+                ycoef = float(y) / (SAMPLE_SCREEN_HEIGHT - 1)
+                r = int(top.r * ycoef + bottom.r * (1 - ycoef))
+                g = int(top.g * ycoef + bottom.g * (1 - ycoef))
+                b = int(top.b * ycoef + bottom.b * (1 - ycoef))
+                c += 1
+                if c > ord('z'): c = ord('a')
+                # set background, foreground and char with a single function
+                buffer.set(x, y, r, g, b, r / 2, g / 2, b / 2, chr(c))
+        buffer.blit(sample_console)  # update console with the buffer's contents
+        libtcod.console_set_default_foreground(sample_console, libtcod.Color(int(r), int(g), int(b)))
+
     libtcod.console_set_default_background(sample_console, libtcod.grey)
-    libtcod.console_print_rect_ex(sample_console, SAMPLE_SCREEN_WIDTH / 2,
+    libtcod.console_print_rect_ex(sample_console, SAMPLE_SCREEN_WIDTH // 2,
                                       5, SAMPLE_SCREEN_WIDTH - 2,
                                       SAMPLE_SCREEN_HEIGHT - 1,
                                       libtcod.BKGND_MULTIPLY, libtcod.CENTER,
                                       "The Doryen library uses 24 bits "
                                       "colors, for both background and "
                                       "foreground.")
+
+    if key.c == ord('f'): tc_fast = not tc_fast
+    libtcod.console_set_default_foreground(sample_console, libtcod.white)
+    libtcod.console_print(sample_console, 1, SAMPLE_SCREEN_HEIGHT - 2,
+                           "F : turn fast rendering (python 2.6 only) %s" % ("off" if tc_fast else "on"))
 
 #############################################
 # offscreen console sample
@@ -214,27 +243,27 @@ oc_y = 0
 oc_init = False
 oc_xdir = 1
 oc_ydir = 1
-def render_offscreen(first, key):
+def render_offscreen(first, key, mouse):
     global oc_secondary, oc_screenshot
     global oc_counter, oc_x, oc_y, oc_init, oc_xdir, oc_ydir
 
     if not oc_init:
         oc_init = True
-        oc_secondary = libtcod.console_new(SAMPLE_SCREEN_WIDTH / 2,
-                                           SAMPLE_SCREEN_HEIGHT / 2)
+        oc_secondary = libtcod.console_new(SAMPLE_SCREEN_WIDTH // 2,
+                                           SAMPLE_SCREEN_HEIGHT // 2)
         oc_screenshot = libtcod.console_new(SAMPLE_SCREEN_WIDTH,
                                             SAMPLE_SCREEN_HEIGHT)
-        libtcod.console_print_frame(oc_secondary, 0, 0, SAMPLE_SCREEN_WIDTH / 2,
-                                    SAMPLE_SCREEN_HEIGHT / 2, False, libtcod.BKGND_NONE,
-                                    'Offscreen console')
-        libtcod.console_print_rect_ex(oc_secondary, SAMPLE_SCREEN_WIDTH / 4,
-                                          2, SAMPLE_SCREEN_WIDTH / 2 - 2,
-                                          SAMPLE_SCREEN_HEIGHT / 2,
+        libtcod.console_print_frame(oc_secondary, 0, 0, SAMPLE_SCREEN_WIDTH // 2,
+                                    SAMPLE_SCREEN_HEIGHT // 2, False, libtcod.BKGND_NONE,
+                                    b'Offscreen console')
+        libtcod.console_print_rect_ex(oc_secondary, SAMPLE_SCREEN_WIDTH // 4,
+                                          2, SAMPLE_SCREEN_WIDTH // 2 - 2,
+                                          SAMPLE_SCREEN_HEIGHT // 2,
                                           libtcod.BKGND_NONE, libtcod.CENTER,
-                                          "You can render to an offscreen "
-                                          "console and blit in on another "
-                                          "one, simulating alpha "
-                                          "transparency.")
+                                          b"You can render to an offscreen "
+                                          b"console and blit in on another "
+                                          b"one, simulating alpha "
+                                          b"transparency.")
     if first:
         libtcod.sys_set_fps(30)
         # get a "screenshot" of the current sample screen
@@ -254,8 +283,8 @@ def render_offscreen(first, key):
             oc_ydir = 1
     libtcod.console_blit(oc_screenshot, 0, 0, SAMPLE_SCREEN_WIDTH,
                          SAMPLE_SCREEN_HEIGHT, sample_console, 0, 0)
-    libtcod.console_blit(oc_secondary, 0, 0, SAMPLE_SCREEN_WIDTH / 2,
-                         SAMPLE_SCREEN_HEIGHT / 2, sample_console, oc_x, oc_y,
+    libtcod.console_blit(oc_secondary, 0, 0, SAMPLE_SCREEN_WIDTH // 2,
+                         SAMPLE_SCREEN_HEIGHT // 2, sample_console, oc_x, oc_y,
                          1.0,0.75)
 
 #############################################
@@ -265,7 +294,7 @@ line_bk = libtcod.Color()
 line_init = False
 line_bk_flag = libtcod.BKGND_SET
 
-def render_lines(first, key):
+def render_lines(first, key, mouse):
     global line_bk, line_init, line_bk_flag
 
     flag_names=['BKGND_NONE',
@@ -300,10 +329,10 @@ def render_lines(first, key):
         # initialize the colored background
         for x in range(SAMPLE_SCREEN_WIDTH):
             for y in range(SAMPLE_SCREEN_HEIGHT):
-                col = libtcod.Color(x * 255 / (SAMPLE_SCREEN_WIDTH - 1),
-                                    (x + y) * 255 / (SAMPLE_SCREEN_WIDTH - 1 +
+                col = libtcod.Color(x * 255 // (SAMPLE_SCREEN_WIDTH - 1),
+                                    (x + y) * 255 // (SAMPLE_SCREEN_WIDTH - 1 +
                                     SAMPLE_SCREEN_HEIGHT - 1),
-                                    y * 255 / (SAMPLE_SCREEN_HEIGHT-1))
+                                    y * 255 // (SAMPLE_SCREEN_HEIGHT-1))
                 libtcod.console_set_char_background(line_bk, x, y, col, libtcod.BKGND_SET)
         line_init = True
     if first:
@@ -314,9 +343,9 @@ def render_lines(first, key):
     recty = int((SAMPLE_SCREEN_HEIGHT - 2) * ((1.0 +
                 math.cos(libtcod.sys_elapsed_seconds())) / 2.0))
     for x in range(SAMPLE_SCREEN_WIDTH):
-        col = libtcod.Color(x * 255 / SAMPLE_SCREEN_WIDTH,
-                            x * 255 / SAMPLE_SCREEN_WIDTH,
-                            x * 255 / SAMPLE_SCREEN_WIDTH)
+        col = libtcod.Color(x * 255 // SAMPLE_SCREEN_WIDTH,
+                            x * 255 // SAMPLE_SCREEN_WIDTH,
+                            x * 255 // SAMPLE_SCREEN_WIDTH)
         libtcod.console_set_char_background(sample_console, x, recty, col, line_bk_flag)
         libtcod.console_set_char_background(sample_console, x, recty + 1, col,
                                  line_bk_flag)
@@ -325,10 +354,10 @@ def render_lines(first, key):
     angle = libtcod.sys_elapsed_seconds() * 2.0
     cos_angle=math.cos(angle)
     sin_angle=math.sin(angle)
-    xo = int(SAMPLE_SCREEN_WIDTH / 2 * (1 + cos_angle))
-    yo = int(SAMPLE_SCREEN_HEIGHT / 2 + sin_angle * SAMPLE_SCREEN_WIDTH / 2)
-    xd = int(SAMPLE_SCREEN_WIDTH / 2 * (1 - cos_angle))
-    yd = int(SAMPLE_SCREEN_HEIGHT / 2 - sin_angle * SAMPLE_SCREEN_WIDTH / 2)
+    xo = int(SAMPLE_SCREEN_WIDTH // 2 * (1 + cos_angle))
+    yo = int(SAMPLE_SCREEN_HEIGHT // 2 + sin_angle * SAMPLE_SCREEN_WIDTH // 2)
+    xd = int(SAMPLE_SCREEN_WIDTH // 2 * (1 - cos_angle))
+    yd = int(SAMPLE_SCREEN_HEIGHT // 2 - sin_angle * SAMPLE_SCREEN_WIDTH // 2)
     # draw the line
     # in python the easiest way is to use the line iterator
     for x,y in libtcod.line_iter(xo, yo, xd, yd):
@@ -352,7 +381,7 @@ noise_hurst = libtcod.NOISE_DEFAULT_HURST
 noise_lacunarity = libtcod.NOISE_DEFAULT_LACUNARITY
 noise = libtcod.noise_new(2)
 noise_img=libtcod.image_new(SAMPLE_SCREEN_WIDTH*2,SAMPLE_SCREEN_HEIGHT*2)
-def render_noise(first, key):
+def render_noise(first, key, mouse):
     global noise_func, noise_img
     global noise_dx, noise_dy
     global noise_octaves, noise_zoom, noise_hurst, noise_lacunarity, noise
@@ -412,7 +441,7 @@ def render_noise(first, key):
                 c = 0
             elif c > 255:
                 c = 255
-            col = libtcod.Color(c / 2, c / 2, c)
+            col = libtcod.Color(c // 2, c // 2, c)
             libtcod.image_put_pixel(noise_img,x,y,col)
     libtcod.console_set_default_background(sample_console, libtcod.grey)
     rectw = 24
@@ -499,7 +528,7 @@ fov_algo_num = 0
 fov_algo_names = ['BASIC      ','DIAMOND    ', 'SHADOW     ',
    'PERMISSIVE0','PERMISSIVE1','PERMISSIVE2','PERMISSIVE3','PERMISSIVE4',
    'PERMISSIVE5','PERMISSIVE6','PERMISSIVE7','PERMISSIVE8','RESTRICTIVE']
-def render_fov(first, key):
+def render_fov(first, key, mouse):
     global fov_px, fov_py, fov_map, fov_dark_wall, fov_light_wall
     global fov_dark_ground, fov_light_ground
     global fov_recompute, fov_torch, fov_noise, fov_torchx, fov_init
@@ -703,7 +732,7 @@ path_recalculate = False
 path_busy = 0.0
 path_oldchar = ' '
 path_init = False
-def render_path(first, key):
+def render_path(first, key, mouse):
     global path_px, path_py, path_dx, path_dy, path_map, path, path_busy
     global path_oldchar, path_init, path_recalculate
     global path_dijk_dist, path_using_astar, path_dijk
@@ -884,7 +913,6 @@ def render_path(first, key):
                                     "Using : Dijkstra")
         path_recalculate=True
 
-    mouse = libtcod.mouse_get_status()
     mx = mouse.cx - SAMPLE_SCREEN_X
     my = mouse.cy - SAMPLE_SCREEN_Y
     if 0 <= mx < SAMPLE_SCREEN_WIDTH and 0 <= my < SAMPLE_SCREEN_HEIGHT  and \
@@ -1028,7 +1056,7 @@ def traverse_node(node, dat):
 bsp = None
 bsp_generate = True
 bsp_refresh = False
-def render_bsp(first, key):
+def render_bsp(first, key, mouse):
     global bsp, bsp_generate, bsp_refresh, bsp_map
     global bsp_random_room, bsp_room_walls, bsp_depth, bsp_min_room_size
     if bsp_generate or bsp_refresh:
@@ -1118,12 +1146,12 @@ img = None
 img_circle = None
 img_blue = libtcod.Color(0, 0, 255)
 img_green = libtcod.Color(0, 255, 0)
-def render_image(first, key):
+def render_image(first, key, mouse):
     global img,img_circle,img_blue,img_green
     if img is None:
-        img = libtcod.image_load(os.path.join('data','img','skull.png'))
+        img = libtcod.image_load(os.path.join(b'data',b'img',b'skull.png'))
         libtcod.image_set_key_color(img,libtcod.black)
-        img_circle = libtcod.image_load(os.path.join('data','img','circle.png'))
+        img_circle = libtcod.image_load(os.path.join(b'data',b'img',b'circle.png'))
     if first:
         libtcod.sys_set_fps(30)
     libtcod.console_set_default_background(sample_console, libtcod.black)
@@ -1133,7 +1161,7 @@ def render_image(first, key):
     scalex=0.2 + 1.8 * (1.0 + math.cos(libtcod.sys_elapsed_seconds() / 2)) / 2.0
     scaley = scalex
     angle = libtcod.sys_elapsed_seconds()
-    elapsed = libtcod.sys_elapsed_milli() / 2000
+    elapsed = libtcod.sys_elapsed_milli() // 2000
     if elapsed & 1 != 0:
         # split the color channels of circle.png
         # the red channel
@@ -1171,7 +1199,7 @@ def render_image(first, key):
 mouse_lbut = 0
 mouse_mbut = 0
 mouse_rbut = 0
-def render_mouse(first, key):
+def render_mouse(first, key, mouse):
     global mouse_lbut
     global mouse_mbut
     global mouse_rbut
@@ -1184,26 +1212,32 @@ def render_mouse(first, key):
         libtcod.mouse_show_cursor(True)
         libtcod.sys_set_fps(30)
     libtcod.console_clear(sample_console)
-    mouse=libtcod.mouse_get_status()
     if mouse.lbutton_pressed:
         mouse_lbut = 1 - mouse_lbut
     if mouse.rbutton_pressed:
         mouse_rbut = 1 - mouse_rbut
     if mouse.mbutton_pressed:
         mouse_mbut = 1 - mouse_mbut
+    wheel=""
+    if mouse.wheel_up :
+        wheel="UP"
+    elif mouse.wheel_down :
+        wheel="DOWN"
     libtcod.console_print(sample_console, 1, 1,
                                "Mouse position : %4dx%4d\n"
                                "Mouse cell     : %4dx%4d\n"
                                "Mouse movement : %4dx%4d\n"
                                "Left button    : %s (toggle %s)\n"
                                "Right button   : %s (toggle %s)\n"
-                               "Middle button  : %s (toggle %s)\n" %
+                               "Middle button  : %s (toggle %s)\n"
+							   "Wheel          : %s" %
                                (mouse.x, mouse.y,
                                mouse.cx, mouse.cy,
                                mouse.dx, mouse.dy,
                                butstatus[mouse.lbutton], butstatus[mouse_lbut],
                                butstatus[mouse.rbutton], butstatus[mouse_rbut],
-                               butstatus[mouse.mbutton], butstatus[mouse_mbut]))
+                               butstatus[mouse.mbutton], butstatus[mouse_mbut],
+							   wheel))
     libtcod.console_print(sample_console, 1, 10,
                                "1 : Hide cursor\n2 : Show cursor")
     if key.c == ord('1'):
@@ -1219,7 +1253,7 @@ ng_nbsets = 0
 ng_delay = 0.0
 ng_names = []
 ng_sets = None
-def render_name(first, key):
+def render_name(first, key, mouse):
     global ng_curset
     global ng_nbsets
     global ng_delay
@@ -1227,12 +1261,12 @@ def render_name(first, key):
     global ng_sets
     if ng_nbsets == 0:
         # parse all *.cfg files in data/namegen
-        for file in os.listdir('data/namegen') :
-            if file.find('.cfg') > 0 :
-                libtcod.namegen_parse(os.path.join('data','namegen',file))
+        for file in os.listdir(b'data/namegen') :
+            if file.find(b'.cfg') > 0 :
+                libtcod.namegen_parse(os.path.join(b'data',b'namegen',file))
         # get the sets list
         ng_sets=libtcod.namegen_get_sets()
-        print ng_sets
+        print (ng_sets)
         ng_nbsets=len(ng_sets)
     if first:
         libtcod.sys_set_fps(30)
@@ -1272,8 +1306,8 @@ except ImportError:
 use_numpy = numpy_available  #default option
 SCREEN_W = SAMPLE_SCREEN_WIDTH
 SCREEN_H = SAMPLE_SCREEN_HEIGHT
-HALF_W = SCREEN_W / 2
-HALF_H = SCREEN_H / 2
+HALF_W = SCREEN_W // 2
+HALF_H = SCREEN_H // 2
 RES_U = 80  #texture resolution
 RES_V = 80
 TEX_STRETCH = 5  #texture stretching with tunnel depth
@@ -1311,7 +1345,7 @@ class Light:
         self.r, self.g, self.b = r, g, b  #color
         self.strength = strength  #between 0 and 1, defines brightness
 
-def render_py(first, key):
+def render_py(first, key, mouse):
     global use_numpy, frac_t, abs_t, lights, tex_r, tex_g, tex_b, xc, yc, texture, texture2, brightness2, R2, G2, B2
 
     if key.c == ord(' ') and numpy_available:  #toggle renderer
@@ -1498,10 +1532,12 @@ credits_end = False
 first = True
 cur_renderer = 0
 renderer_name=('F1 GLSL   ','F2 OPENGL ','F3 SDL    ')
+key=libtcod.Key()
+mouse=libtcod.Mouse()
 while not libtcod.console_is_window_closed():
-    key = libtcod.console_check_for_keypress()
+    libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS|libtcod.EVENT_MOUSE,key,mouse)
     # render the sample
-    samples[cur_sample].func(first, key)
+    samples[cur_sample].func(first, key, mouse)
     first = False
     libtcod.console_blit(sample_console,
                          0, 0, SAMPLE_SCREEN_WIDTH, SAMPLE_SCREEN_HEIGHT,
@@ -1552,8 +1588,14 @@ while not libtcod.console_is_window_closed():
         first = True
     elif key.vk == libtcod.KEY_ENTER and key.lalt:
         libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
-    elif key.vk == libtcod.KEY_PRINTSCREEN:
-        libtcod.sys_save_screenshot()
+    elif key.vk == libtcod.KEY_PRINTSCREEN or key.c == 'p':
+        print ("screenshot")
+        if key.lalt :
+            libtcod.console_save_apf(None,"samples.apf")
+            print ("apf")
+        else :
+            libtcod.sys_save_screenshot()
+            print ("png")
     elif key.vk == libtcod.KEY_ESCAPE:
         break
     elif key.vk == libtcod.KEY_F1:

@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,11 @@ typedef  enum
 	BackCol,
 	ConsoleDataEnumSize
 } ConsoleDataEnum;
-const int ConsoleDataAlignment[3] = {1, 3, 3 };
+/* JBR04152012 - Made Character a 4 byte value here to support extended characters like other renderers.
+   Seems like it should be possible to make it a two byte value using GL_UNSIGNED_SHORT_5_6_5_REV in updateTex, 
+   but I can't seem to get the math right in the shader code, it always loses precision somewhere,
+   resulting in incorrect characters. */
+const int ConsoleDataAlignment[3] = {4, 3, 3 };
 
 static const char *TCOD_con_vertex_shader =
 #ifndef NDEBUG
@@ -95,14 +99,14 @@ static const char *TCOD_con_pixel_shader =
 
 "   vec2 address = vec2(conPos.x*termcoef.x,conPos.y*termcoef.y); "
 "	address=address+vec2(0.001, 0.001); "
-"   float inchar = texture2D(term, address).r*256.0; "         /* character */
+"   vec4 charvec = texture2D(term,address);"
+"   float inchar = (charvec.r * 256.0) + (charvec.g * 256.0 * 256.0);"          /* character */
 "   vec4 tcharfcol = texture2D(termfcol, address); "           /* front color */
 "   vec4 tcharbcol = texture2D(termbcol, address); "           /* back color */
 
 "   vec4 tchar = vec4(mod(floor(inchar),floor(fontw)),floor(inchar/fontw), 0.0, 0.0); "  /* 1D index to 2D index map for character */
 
 "   gl_FragColor = texture2D(font, vec2((tchar.x*fontcoef.x),(tchar.y*fontcoef.y))+pixPos.xy); "   /* magic func: finds pixel value in font file */
-
 "   gl_FragColor=gl_FragColor.a*tcharfcol+(1.0-gl_FragColor.a)*tcharbcol; "      /* Coloring stage */
 "} "
 ;
@@ -128,10 +132,10 @@ void TCOD_opengl_init_attributes() {
 		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,8);
 		SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
+		/* ATI driver bug : enabling this might result in red screen */
+		/* SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1); */
 		first=false;
 	}
-	/* ATI driver bug : enabling this might result in red screen */
-	/*SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1); */
 }
 
 /* console size (power of 2 and cells) */
@@ -418,6 +422,7 @@ static bool updateTex(ConsoleDataEnum dataType) {
 		break;
 	case 4:
 		Type = GL_RGBA;
+		break;
 	}
     /*glPixelStorei(GL_UNPACK_ALIGNMENT, 1); */
 	DBGCHECKGL(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, conwidth, conheight, Type, GL_UNSIGNED_BYTE, data[dataType]));
@@ -436,11 +441,11 @@ static void updateChar(ConsoleDataEnum dataType, int BufferPos, unsigned char *c
 
 }
 
-void TCOD_opengl_putchar_ex(int x, int y, unsigned char c, TCOD_color_t fore, TCOD_color_t back) {
+void TCOD_opengl_putchar_ex(int x, int y, int c, TCOD_color_t fore, TCOD_color_t back) {
 	int loc = x+y*conwidth;
 
 	if ( TCOD_ctx.renderer == TCOD_RENDERER_GLSL ) {
-		updateChar(Character, loc, &c, ConsoleDataAlignment[Character], 0);
+		updateChar(Character, loc, (unsigned char *)&c, ConsoleDataAlignment[Character], 0);
 		updateChar(ForeCol, loc, &fore.r, ConsoleDataAlignment[ForeCol], 0);
 	}
 	updateChar(BackCol, loc, &back.r, ConsoleDataAlignment[BackCol], 0);

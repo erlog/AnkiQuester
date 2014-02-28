@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,8 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <string.h>
-#ifdef __linux
+
+#if defined (__linux) && ! defined (__ANDROID__) || defined (__FreeBSD__)
 /* X11 stuff for clipboard support */
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -49,6 +50,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <dlfcn.h>
 #endif
 
 #if defined(TCOD_WINDOWS)
@@ -166,22 +168,6 @@ TCOD_list_t TCOD_sys_get_directory_content(const char *path, const char *pattern
 	return list;
 }
 
-bool TCOD_sys_file_exists(const char * filename, ...) {
-	FILE * in;
-	bool ret = false;
-	char f[1024];
-	va_list ap;
-	va_start(ap,filename);
-	vsprintf(f,filename,ap);
-	va_end(ap);
-	in = fopen(f,"rb");
-	if (in != NULL) {
-		ret = true;
-		fclose(in);
-	}
-	return ret;
-}
-
 /* thread stuff */
 #ifdef TCOD_WINDOWS
 /* Helper function to count set bits in the processor mask. */
@@ -239,7 +225,7 @@ int TCOD_sys_get_num_cores() {
 	    } NumaNode;
 	    CACHE_DESCRIPTOR Cache;
 	    ULONGLONG Reserved[2];
-	  }                            ;
+	  };
 	} SYSTEM_LOGICAL_PROCESSOR_INFORMATION,
 	 *PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;
 	typedef BOOL (WINAPI *LPFN_GLPI)(
@@ -633,7 +619,7 @@ char *TCOD_sys_clipboard_get()
 	}
 	return clipboardText;
 }
-#elif defined(TCOD_HAIKU)
+#elif defined(TCOD_HAIKU) || defined(__ANDROID__)
 /* TODO */
 void TCOD_sys_clipboard_set(const char *value)
 {
@@ -672,16 +658,40 @@ char *TCOD_sys_clipboard_get()
 #ifdef TCOD_WINDOWS
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD reason, LPVOID reserved) {
 	switch (reason ) {
-		case DLL_PROCESS_ATTACH : TCOD_sys_startup(); break;
+		/* case DLL_PROCESS_ATTACH : TCOD_sys_startup(); break;  -- not safe, locks up in SDL2/RegisterClass call */
 		default : break;
 	}
 	return TRUE;
 }
 #else
-	#ifndef TCOD_MACOSX
+/* JBR03202012 Presumably there was a reason for this being if !MACOSOX, but it works fine for me
+	#ifndef TCOD_MACOSX */
 	void __attribute__ ((constructor)) DllMain() {
-		TCOD_sys_startup();
+		/* TCOD_sys_startup(); */
 	}
-	#endif
+/*	#endif */
 #endif
 
+/* dynamic library support */
+#ifdef TCOD_WINDOWS
+TCOD_library_t TCOD_load_library(const char *path) {
+	return (TCOD_library_t)LoadLibrary(path);
+}
+void * TCOD_get_function_address(TCOD_library_t library, const char *function_name) {
+	return (void *)GetProcAddress((HMODULE)library,function_name);	
+}
+void TCOD_close_library(TCOD_library_t library) {
+	FreeLibrary((HMODULE)library);
+}
+#else
+TCOD_library_t TCOD_load_library(const char *path) {
+	void *l=dlopen(path,RTLD_LAZY);
+	return (TCOD_library_t)l;
+}
+void * TCOD_get_function_address(TCOD_library_t library, const char *function_name) {
+	return dlsym(library,(char *)function_name);
+}
+void TCOD_close_library(TCOD_library_t library) {
+	dlclose(library);
+}
+#endif

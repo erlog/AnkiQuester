@@ -497,7 +497,7 @@ void buildGui() {
 }
 
 int main(int argc, char *argv[]) {
-	TCODConsole::initRoot(HM_WIDTH,HM_HEIGHT,"height map tool",false,TCOD_RENDERER_SDL);
+	TCODConsole::initRoot(HM_WIDTH,HM_HEIGHT,"height map tool",false);
 	guicon = new TCODConsole(HM_WIDTH,HM_HEIGHT);
 	guicon->setKeyColor(TCODColor(255,0,255));
 	Widget::setConsole(guicon);
@@ -526,8 +526,10 @@ int main(int argc, char *argv[]) {
 		}
 		TCODConsole::blit(guicon,0,0,HM_WIDTH,HM_HEIGHT,TCODConsole::root,0,0,fade/255.0f,fade/255.0f);
 		TCODConsole::flush();
-		TCOD_key_t key=TCODConsole::checkForKeypress();
-		Widget::updateWidgets(key);
+		TCOD_key_t key;
+		TCOD_mouse_t mouse;
+		TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE,&key,&mouse);
+		Widget::updateWidgets(key,mouse);
 		switch(key.c) {
 			case '+' : (new AddLevelOperation((mapmax-mapmin)/50))->run(); break;
 			case '-' : (new AddLevelOperation(-(mapmax-mapmin)/50))->run(); break;

@@ -98,11 +98,6 @@ void Widget::updateWidgets(const TCOD_key_t k,const TCOD_mouse_t pmouse) {
 	updateWidgetsIntern(k);
 }
 
-void Widget::updateWidgets(const TCOD_key_t k) {
-	mouse=TCODMouse::getStatus();
-	updateWidgetsIntern(k);
-}
-
 void Widget::renderWidgets() {
 	if (!con) con=TCODConsole::root;
 	for (Widget **w=widgets.begin(); w!= widgets.end(); w++) {

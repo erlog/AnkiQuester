@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -34,5 +34,6 @@ TCODLIB_API void TCOD_mouse_show_cursor(bool visible);
 TCODLIB_API TCOD_mouse_t TCOD_mouse_get_status();
 TCODLIB_API bool TCOD_mouse_is_cursor_visible();
 TCODLIB_API void TCOD_mouse_move(int x, int y);
+TCODLIB_API void TCOD_mouse_includes_touch(bool enable);
 
 #endif

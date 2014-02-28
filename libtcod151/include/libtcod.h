@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -80,6 +80,15 @@
 #  else
 #    define TCOD_LINUX32
 #  endif
+#elif defined( __FreeBSD__ )
+#  define TCOD_FREEBSD
+#  define TCOD_GCC
+#  if __WORDSIZE == 64
+#    define TCOD_FREEBSD64
+#    define TCOD_64BITS
+#  else
+#    define TCOD_FREEBSD32
+#  endif
 #elif defined (__APPLE__) && defined (__MACH__)
 #  define TCOD_MACOSX
 #  define TCOD_GCC
@@ -111,7 +120,7 @@ typedef unsigned long uintptr;
 
 #define TCOD_HEXVERSION 0x010501
 #define TCOD_STRVERSION "1.5.1"
-#define TCOD_TECHVERSION 0x01050101
+#define TCOD_TECHVERSION 0x01050103
 
 /* bool support for C */
 #ifndef __cplusplus
@@ -148,10 +157,7 @@ TCODLIB_API int TCOD_strncasecmp(const char *s1, const char *s2, size_t n);
 #if defined(TCOD_WINDOWS)
 char *strcasestr (const char *haystack, const char *needle);
 #endif
-#if defined(TCOD_LINUX) || defined(TCOD_HAIKU)
-#define vsnwprintf vswprintf
-#endif
-#ifdef TCOD_MACOSX
+#if defined(TCOD_LINUX) || defined(TCOD_HAIKU) || defined(TCOD_FREEBSD) || defined(TCOD_MACOSX)
 #define vsnwprintf vswprintf
 #endif
 #ifdef TCOD_WINDOWS
@@ -171,9 +177,9 @@ char *strcasestr (const char *haystack, const char *needle);
 #include "color.h"
 #include "console.h"
 #include "image.h"
+#include "mouse.h"
 #include "sys.h"
 #include "mersenne.h"
-#include "mouse.h"
 #include "bresenham.h"
 #include "noise.h"
 #include "fov.h"

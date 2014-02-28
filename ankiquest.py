@@ -2,46 +2,36 @@
 
 import os, sys, random, pdb
 
-#Check to see if we're running inside Anki
+#Check to see if we're running inside Anki, and load appropriate Anki libraries
 try:
 	from aqt import mw
 	from aqt.utils import showInfo
 	from aqt.qt import *
 	from aqt import forms
 	from anki.hooks import wrap
+	AQ_PATH = os.path.normpath(os.path.join(mw.pm.addonFolder().encode(sys.getfilesystemencoding()), "ankiquester/"))
 	AQ_DEBUG = False
-except:
+except ImportError:
 	AQ_DEBUG = True
+	AQ_PATH = os.path.abspath(os.curdir)
+	import pdb
+	
+#Load libtcod
+libtcodpath = os.path.normpath(os.path.join(AQ_PATH, "libtcod151/"))
+os.chdir(libtcodpath)
+sys.path.append(libtcodpath)
+import libtcodpy as libtcod
 	
 def anki_quester():
-	#Set up libtcod
-	#This sucks right now, but the libtcod website is broken, so しかたない
-	global libtcod, AQGameInstance, AQIOController, AQLastAnswer
-	
-	if AQ_DEBUG:
-		AQ_PATH = os.path.abspath(os.curdir)
-	else:
-		AQ_PATH = os.path.join(mw.addonManager.addonsFolder(), "ankiquester/")
-	
-	if sys.platform.find("win32") != -1:
-		os.chdir(os.path.join(AQ_PATH, "libtcod151/"))
-		from libtcod151 import libtcodpy
-	elif sys.platform.find("darwin") != -1:
-		os.chdir(os.path.join(AQ_PATH, "libtcod160/"))
-		from libtcod160 import libtcodpy
-	else:
-		showInfo("Unsupported Platform")
-		return
-	
-	libtcod = libtcodpy
+	global AQGameInstance, AQIOController
 	
 	#Set up our game objects
 	AQGameInstance = AnkiQuester()
 	AQIOController = IOController()
 	
 	#hook the review process to construct our game loop
-	if not AQ_DEBUG:
-		mw.reviewer._answerCard = catch_review
+	#if not AQ_DEBUG:
+	#	mw.reviewer._answerCard = catch_review
 	
 	while not libtcod.console_is_window_closed(): 
 		AQIOController.RefreshWindow(AQGameInstance)

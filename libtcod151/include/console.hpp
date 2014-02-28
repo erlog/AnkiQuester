@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -86,16 +86,16 @@ public :
 	@PageName console_init_root
 	@PageTitle Creating the game window
 	@PageFather console_init
-	@Cpp static void TCODConsole::initRoot (int w, int h, const char * title, bool fullscreen = false, TCOD_renderer_t renderer = TCOD_RENDERER_GLSL)
+	@Cpp static void TCODConsole::initRoot (int w, int h, const char * title, bool fullscreen = false, TCOD_renderer_t renderer = TCOD_RENDERER_SDL)
 	@C void TCOD_console_init_root (int w, int h, const char * title, bool fullscreen, TCOD_renderer_t renderer)
-	@Py console_init_root (w, h, title, fullscreen = False, renderer = RENDERER_GLSL)
+	@Py console_init_root (w, h, title, fullscreen = False, renderer = RENDERER_SDL)
 	@C#
 		static void TCODConsole::initRoot(int w, int h, string title)
 		static void TCODConsole::initRoot(int w, int h, string title, bool fullscreen)
 		static void TCODConsole::initRoot(int w, int h, string title, bool fullscreen, TCODRendererType renderer)
 	@Lua
-		tcod.console.initRoot(w,h,title) -- fullscreen = false, renderer = GLSL
-		tcod.console.initRoot(w,h,title,fullscreen) -- renderer = GLSL
+		tcod.console.initRoot(w,h,title) -- fullscreen = false, renderer = SDL
+		tcod.console.initRoot(w,h,title,fullscreen) -- renderer = SDL
 		tcod.console.initRoot(w,h,title,fullscreen,renderer)
 		-- renderers : tcod.GLSL, tcod.OpenGL, tcod.SDL
 	@Param w,h size of the console(in characters). The default font in libtcod (./terminal.png) uses 8x8 pixels characters.
@@ -115,11 +115,11 @@ public :
 		Note 4: you can dynamically change the renderer after calling initRoot with TCODSystem::setRenderer.
 		Note 5: you can get current renderer with TCODSystem::getRenderer. It might be different from the one you set in initRoot in case it's not supported on the player's computer.
 	@CppEx TCODConsole::initRoot(80, 50, "The Chronicles Of Doryen v0.1");
-	@CEx TCOD_console_init_root(80, 50, "The Chronicles Of Doryen v0.1", false, TCOD_RENDERER_SDL);
+	@CEx TCOD_console_init_root(80, 50, "The Chronicles Of Doryen v0.1", false, TCOD_RENDERER_OPENGL);
 	@PyEx libtcod.console_init_root(80, 50, 'The Chronicles Of Doryen v0.1')
 	@LuaEx tcod.console.initRoot(80,50,"The Chronicles Of Doryen v0.1")
 	*/
-	static void initRoot(int w, int h, const char * title, bool fullscreen = false, TCOD_renderer_t renderer=TCOD_RENDERER_GLSL);
+	static void initRoot(int w, int h, const char * title, bool fullscreen = false, TCOD_renderer_t renderer=TCOD_RENDERER_SDL);
 
 	/**
 	@PageName console_set_custom_font
@@ -144,11 +144,11 @@ public :
 		<table>
 		<tr><td>standard<br />(non antialiased)</td><td>antialiased<br />(32 bits PNG)</td><td>antialiased<br />(greyscale)</td></tr>
 
-		<tr><td><img src='terminal.png' /></td><td><img src='terminal8x8_aa_as.png' /></td><td><img src='terminal8x8_gs_as.png' /></td></tr>
+		<tr><td><img src='terminal.png' /></td><td><img src='terminal8x8_aa_as.png' /></td><td><img src='terminal8x8_gs_as2.png' /></td></tr>
 		</table>
 		<ul>
 		<li>standard : transparency is given by a key color automatically detected by looking at the color of the space character</li>
-		<li>32 bits : transparency is given by the png alpha layer. The font color does not matter</li>
+		<li>32 bits : transparency is given by the png alpha layer. The font color does not matter but it must be desaturated</li>
 		<li>greyscale : transparency is given by the pixel value. You can use white characters on black background or black characters on white background. The background color is automatically detected by looking at the color of the space character</li>
 		</ul>
 		Examples of fonts can be found in libtcod's fonts directory. Check the Readme file there.
@@ -738,6 +738,7 @@ public :
 	@FuncTitle Compute the height of an autowrapped string
 	@FuncDesc This function returns the expected height of an autowrapped string without actually printing the string with printRect or printRectEx
 	@Cpp int TCODConsole::getHeightRect(int x, int y, int w, int h, const char *fmt, ...)
+
 	@C int TCOD_console_get_height_rect(TCOD_console_t con,int x, int y, int w, int h, const char *fmt, ...)
 	@Py console_get_height_rect(con, x, y, w, h, fmt)
 	@C# int TCODConsole::getHeightRect(int x, int y, int w, int h, string fmt)
@@ -1058,10 +1059,10 @@ public :
 	@PageName console_read
 	@FuncTitle Reading the ASCII code of a cell
 	@FuncDesc This function returns the ASCII code of a cell.
-	@Cpp TCODColor TCODConsole::getChar(int x, int y) const
-	@C TCOD_color_t TCOD_console_get_char(TCOD_console_t con,int x, int y)
+	@Cpp int TCODConsole::getChar(int x, int y) const
+	@C int TCOD_console_get_char(TCOD_console_t con,int x, int y)
 	@Py console_get_char(con,x,y)
-	@C# TCODColor TCODConsole::getChar(int x, int y)
+	@C# int TCODConsole::getChar(int x, int y)
 	@Lua Console::getChar(x, y)
 	@Param con in the C and Python versions, the offscreen console handler or NULL for the root console
 	@Param x,y coordinates of the cell in the console.
@@ -1124,7 +1125,7 @@ public :
 	@FuncTitle Reading the fading color
 	@FuncDesc This function returns the current fading color, previously defined by setFade.
 	@Cpp static TCODColor TCODConsole::getFadingColor()
-	@C TCODColor TCOD_console_get_fadingColor()
+	@C TCOD_color_t TCOD_console_get_fading_color()
 	@Py console_get_fading_color()
 	@C# static TCODColor TCODConsole::getFadingColor()
 	@Lua tcod.console.getFadingColor()
@@ -1262,7 +1263,7 @@ public :
 	@PageFather console
 	*/
 
-	/**
+/**
 	@PageName console_blocking_input
 	@PageTitle Blocking keyboard input
 	@PageFather console_input
@@ -1322,8 +1323,11 @@ public :
 		if key.Character == 'i' then ... open inventory ... end
 	*/
 	static TCOD_key_t checkForKeypress(int flags=TCOD_KEY_RELEASED);
+	
 	/**
 	@PageName console_non_blocking_input
+	@PageTitle Non blocking keyboard input
+	@PageFather console_input
 	@FuncDesc You can also get the status of any special key at any time with :
 	@Cpp static bool TCODConsole::isKeyPressed(TCOD_keycode_t key)
 	@C bool TCOD_console_is_key_pressed(TCOD_keycode_t key)
@@ -1515,7 +1519,91 @@ public :
 		tcod.console.blit(offscreenConsole,0,0,40,20,libtcod.TCODConsole_root,5,5,255)
 	*/
 	TCODConsole(int w, int h);
+	
+	/**
+	@PageName console_offscreen
+	@FuncTitle Creating an offscreen console from a .asc or .apf file
+	@FuncDesc You can create an offscreen console from a file created with Ascii Paint with this constructor
+	@Cpp TCODConsole::TCODConsole(const char *filename)
+	@C TCOD_console_t TCOD_console_from_file(const char *filename)
+	@Param filename path to the .asc or .apf file created with Ascii Paint
+	@CppEx
+		// Creating an offscreen console, filling it with data from the .asc file
+		TCODConsole *offscreenConsole = new TCODConsole("myfile.asc");
+	@CEx
+		TCOD_console_t offscreen_console = TCOD_console_from_file("myfile.apf");
+	*/
+	TCODConsole(const char *filename);
 
+	/**
+	@PageName console_offscreen
+	@FuncTitle Loading an offscreen console from a .asc file
+	@FuncDesc You can load data from a file created with Ascii Paint with this function. When needed, the console will be resized to fit the file size. The function returns false if it couldn't read the file.
+	@Cpp bool TCODConsole::loadAsc(const char *filename)
+	@C bool TCOD_console_load_asc(TCOD_console_t con, const char *filename)
+	@Param con in the C and Python versions, the offscreen console handler
+	@Param filename path to the .asc file created with Ascii Paint
+	@CppEx
+		// Creating a 40x20 offscreen console
+		TCODConsole *offscreenConsole = new TCODConsole(40,20);
+		// possibly resizing it and filling it with data from the .asc file
+		offscreenConsole->loadAsc("myfile.asc");
+	@CEx
+		TCOD_console_t offscreen_console = TCOD_console_new(40,20);
+		TCOD_console_load_asc(offscreen_console,"myfile.asc");
+	*/
+	bool loadAsc(const char *filename);
+	/**
+	@PageName console_offscreen
+	@FuncTitle Loading an offscreen console from a .apf file
+	@FuncDesc You can load data from a file created with Ascii Paint with this function. When needed, the console will be resized to fit the file size. The function returns false if it couldn't read the file.
+	@Cpp bool TCODConsole::loadApf(const char *filename)
+	@C bool TCOD_console_load_apf(TCOD_console_t con, const char *filename)
+	@Param con in the C and Python versions, the offscreen console handler
+
+	@Param filename path to the .apf file created with Ascii Paint
+
+	@CppEx
+		// Creating a 40x20 offscreen console
+		TCODConsole *offscreenConsole = new TCODConsole(40,20);
+		// possibly resizing it and filling it with data from the .apf file
+		offscreenConsole->loadApf("myfile.apf");
+	@CEx
+		TCOD_console_t offscreen_console = TCOD_console_new(40,20);
+		TCOD_console_load_apf(offscreen_console,"myfile.asc");
+	*/
+	bool loadApf(const char *filename);
+
+    /**
+	@PageName console_offscreen
+	@FuncTitle Saving a console to a .asc file
+	@FuncDesc You can save data from a console to Ascii Paint format with this function. The function returns false if it couldn't write the file. This is the only ASC function that works also with the root console !
+	@Cpp bool TCODConsole::saveAsc(const char *filename) const
+	@C bool TCOD_console_save_asc(TCOD_console_t con, const char *filename)
+	@Param con in the C and Python versions, the offscreen console handler or NULL for the root console
+	@Param filename path to the .asc file to be created
+	@CppEx
+		console->saveAsc("myfile.asc");
+	@CEx
+		TCOD_console_save_asc(console,"myfile.asc");
+	*/
+	bool saveAsc(const char *filename) const;
+
+    /**
+	@PageName console_offscreen
+	@FuncTitle Saving a console to a .apf file
+	@FuncDesc You can save data from a console to Ascii Paint format with this function. The function returns false if it couldn't write the file. This is the only ASC function that works also with the root console !
+	@Cpp bool TCODConsole::saveApf(const char *filename) const
+	@C bool TCOD_console_save_apf(TCOD_console_t con, const char *filename)
+	@Param con in the C and Python versions, the offscreen console handler or NULL for the root console
+	@Param filename path to the .apf file to be created
+	@CppEx
+		console->saveApf("myfile.apf");
+	@CEx
+		TCOD_console_save_apf(console,"myfile.apf");
+	*/
+	bool saveApf(const char *filename) const;
+	
 	/**
 	@PageName console_offscreen
 	@FuncTitle Blitting a console on another one
@@ -1532,7 +1620,7 @@ public :
 		tcod.console.blit(src, xSrc, ySrc, wSrc, hSrc, dst, xDst, yDst, foreground_alpha)
 		tcod.console.blit(src, xSrc, ySrc, wSrc, hSrc, dst, xDst, yDst, foreground_alpha, background_alpha)
 	@Param src The source console that must be blitted on another one.
-	@Param xSrc,ySrc,wSrc,hSrc The rectangular area of the source console that will be blitted.
+	@Param xSrc,ySrc,wSrc,hSrc The rectangular area of the source console that will be blitted. If wSrc and/or hSrc == 0, the source console width/height are used
 	@Param dst The destination console.
 	@Param xDst,yDst Where to blit the upper-left corner of the source area in the destination console.
 	@Param foregroundAlpha,backgroundAlpha Alpha transparency of the blitted console.

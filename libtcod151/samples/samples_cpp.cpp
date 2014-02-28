@@ -13,8 +13,10 @@
 #include <math.h>
 #include "libtcod.hpp"
 #define _SDL_main_h
-#ifdef __HAIKU__
+#if defined (__HAIKU__) || defined (__ANDROID__)
 #include <SDL.h>
+#elif defined (TCOD_SDL2)
+#include <SDL2/SDL.h>
 #else
 #include <SDL/SDL.h>
 #endif
@@ -23,7 +25,7 @@
 // a sample has a name and a rendering function
 typedef struct {
 	char name[64];
-	void (*render)(bool first, TCOD_key_t*key);
+	void (*render)(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse);
 } sample_t;
 
 // sample screen size
@@ -43,7 +45,7 @@ TCODConsole sampleConsole(SAMPLE_SCREEN_WIDTH,SAMPLE_SCREEN_HEIGHT);
 // ***************************
 // true colors sample
 // ***************************
-void render_colors(bool first, TCOD_key_t*key) {
+void render_colors(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	enum { TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT };
 	static TCODColor cols[4]={TCODColor(50,40,150),TCODColor(240,85,5),TCODColor(50,35,240),TCODColor(10,200,130)}; // random corner colors
 	static int dirr[4]={1,-1,1,1},dirg[4]={1,-1,-1,1},dirb[4]={1,1,1,-1};
@@ -95,12 +97,19 @@ void render_colors(bool first, TCOD_key_t*key) {
 	textColor.r=255-textColor.r;
 	textColor.g=255-textColor.g;
 	textColor.b=255-textColor.b;
-	/* put random text (for performance tests) */
+	// put random text (for performance tests) 
 	for (int x=0; x < SAMPLE_SCREEN_WIDTH; x++) {
 		for (int y=0; y < SAMPLE_SCREEN_HEIGHT; y++) {
+			int c;
 			TCODColor col=sampleConsole.getCharBackground(x,y);
 			col=TCODColor::lerp(col,TCODColor::black,0.5f);
-			int c=TCODRandom::getInstance()->getInt('a','z');
+			// use colored character 255 on first and last lines
+			if ( y == 0 || y == SAMPLE_SCREEN_HEIGHT-1) {
+				c=255;
+			} else {
+				c=TCODRandom::getInstance()->getInt('a','z');
+			}
+			
 			sampleConsole.setDefaultForeground(col);
 			sampleConsole.putChar(x,y,c,TCOD_BKGND_NONE);
 		}
@@ -116,7 +125,7 @@ void render_colors(bool first, TCOD_key_t*key) {
 // ***************************
 // offscreen console sample
 // ***************************
-void render_offscreen(bool first, TCOD_key_t*key) {
+void render_offscreen(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	static TCODConsole secondary(SAMPLE_SCREEN_WIDTH/2,SAMPLE_SCREEN_HEIGHT/2); // second screen
 	static TCODConsole screenshot(SAMPLE_SCREEN_WIDTH,SAMPLE_SCREEN_HEIGHT); // second screen
 	static bool init=false; // draw the secondary screen only the first time
@@ -166,7 +175,7 @@ class LineListener : public TCODLineListener {
 			return true;
 		}
 };
-void render_lines(bool first, TCOD_key_t*key) {
+void render_lines(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	static TCODConsole bk(SAMPLE_SCREEN_WIDTH,SAMPLE_SCREEN_HEIGHT); // colored background
 	static bool init=false;
 	static const char *flagNames[]={
@@ -247,7 +256,7 @@ void render_lines(bool first, TCOD_key_t*key) {
 // ***************************
 // noise sample
 // ***************************
-void render_noise(bool first, TCOD_key_t*key) {
+void render_noise(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	enum { PERLIN,SIMPLEX,WAVELET,
 		FBM_PERLIN,TURBULENCE_PERLIN,
 		FBM_SIMPLEX,TURBULENCE_SIMPLEX,
@@ -381,7 +390,7 @@ void render_noise(bool first, TCOD_key_t*key) {
 // ***************************
 // fov sample
 // ***************************
-void render_fov(bool first, TCOD_key_t*key) {
+void render_fov(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	static const char *smap[] = {
 		"##############################################",
 		"#######################      #################",
@@ -563,7 +572,7 @@ void render_fov(bool first, TCOD_key_t*key) {
 // ***************************
 // image sample
 // ***************************
-void render_image(bool first, TCOD_key_t*key) {
+void render_image(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	static TCODImage * img=NULL, *circle = NULL;
 	static TCODColor blue(0,0,255);
 	static TCODColor green(0,255,0);
@@ -610,8 +619,7 @@ void render_image(bool first, TCOD_key_t*key) {
 // ***************************
 // mouse sample
 // ***************************/
-void render_mouse(bool first, TCOD_key_t*key) {
-  TCOD_mouse_t mouse;
+void render_mouse(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
   static bool lbut=false,rbut=false,mbut=false;
 
   if ( first ) {
@@ -623,23 +631,24 @@ void render_mouse(bool first, TCOD_key_t*key) {
   }
 
   sampleConsole.clear();
-  mouse=TCODMouse::getStatus();
-  if ( mouse.lbutton_pressed ) lbut=!lbut;
-  if ( mouse.rbutton_pressed ) rbut=!rbut;
-  if ( mouse.mbutton_pressed ) mbut=!mbut;
+  if ( mouse->lbutton_pressed ) lbut=!lbut;
+  if ( mouse->rbutton_pressed ) rbut=!rbut;
+  if ( mouse->mbutton_pressed ) mbut=!mbut;
   sampleConsole.print(1,1,
     "Mouse position : %4dx%4d\n"
     "Mouse cell     : %4dx%4d\n"
     "Mouse movement : %4dx%4d\n"
     "Left button    : %s (toggle %s)\n"
     "Right button   : %s (toggle %s)\n"
-    "Middle button  : %s (toggle %s)\n",
-    mouse.x,mouse.y,
-    mouse.cx,mouse.cy,
-    mouse.dx,mouse.dy,
-    mouse.lbutton ? " ON" : "OFF",lbut ? " ON" : "OFF",
-    mouse.rbutton ? " ON" : "OFF",rbut ? " ON" : "OFF",
-    mouse.mbutton ? " ON" : "OFF",mbut ? " ON" : "OFF");
+    "Middle button  : %s (toggle %s)\n"
+	"Wheel          : %s\n",
+    mouse->x,mouse->y,
+    mouse->cx,mouse->cy,
+    mouse->dx,mouse->dy,
+    mouse->lbutton ? " ON" : "OFF",lbut ? " ON" : "OFF",
+    mouse->rbutton ? " ON" : "OFF",rbut ? " ON" : "OFF",
+    mouse->mbutton ? " ON" : "OFF",mbut ? " ON" : "OFF",
+	mouse->wheel_up ? "UP" : (mouse->wheel_down ? "DOWN" : "") );
   sampleConsole.print(1,10,"1 : Hide cursor\n2 : Show cursor");
   if (key->c == '1') TCODMouse::showCursor(false);
   else if( key->c == '2' ) TCODMouse::showCursor(true);
@@ -648,7 +657,7 @@ void render_mouse(bool first, TCOD_key_t*key) {
 // ***************************
 // path sample
 // ***************************
-void render_path(bool first, TCOD_key_t*key) {
+void render_path(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	static const char *smap[] = {
 		"##############################################",
 		"#######################      #################",
@@ -686,7 +695,6 @@ void render_path(bool first, TCOD_key_t*key) {
 	static bool recalculatePath=false;
 	static float busy;
 	static int oldChar=' ';
-	TCOD_mouse_t mouse;
 	int mx,my;
 	if ( ! map) {
 		// initialize the map for the fov toolkit
@@ -835,9 +843,8 @@ void render_path(bool first, TCOD_key_t*key) {
 			sampleConsole.print(1,4,"Using : Dijkstra");
 		recalculatePath=true;
 	}
-	mouse=TCODMouse::getStatus();
-	mx = mouse.cx-SAMPLE_SCREEN_X;
-	my = mouse.cy-SAMPLE_SCREEN_Y;
+	mx = mouse->cx-SAMPLE_SCREEN_X;
+	my = mouse->cy-SAMPLE_SCREEN_Y;
 	if ( mx >= 0 && mx < SAMPLE_SCREEN_WIDTH && my >= 0 && my < SAMPLE_SCREEN_HEIGHT && ( dx != mx || dy != my ) ) {
 		sampleConsole.putChar(dx,dy,oldChar,TCOD_BKGND_NONE);
 		dx=mx;dy=my;
@@ -1003,7 +1010,7 @@ public :
 		return true;
 	}
 };
-void render_bsp(bool first, TCOD_key_t*key) {
+void render_bsp(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	static TCODBsp *bsp=NULL;
 	static bool generate=true;
 	static bool refresh=false;
@@ -1075,7 +1082,7 @@ void render_bsp(bool first, TCOD_key_t*key) {
 /* ***************************
  * name generator sample
  * ***************************/
-void render_name(bool first, TCOD_key_t*key) {
+void render_name(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	static int nbSets=0;
 	static int curSet=0;
 	static float delay=0.0f;
@@ -1356,7 +1363,7 @@ protected :
 	}
 };
 
-void render_sdl(bool first, TCOD_key_t*key) {
+void render_sdl(bool first, TCOD_key_t*key, TCOD_mouse_t *mouse) {
 	if ( first ) {
 		TCODSystem::setFps(30); /* limited to 30 fps */
 		// use noise sample as background. rendering is done in SampleRenderer
@@ -1406,12 +1413,13 @@ int main( int argc, char *argv[] ) {
 	int curSample=0; // index of the current sample
 	bool first=true; // first time we render a sample
 	TCOD_key_t key = {TCODK_NONE,0};
+	TCOD_mouse_t mouse;
 	const char *font="data/fonts/consolas10x10_gs_tc.png";
 	int nbCharHoriz=0,nbCharVertic=0;
 	int argn;
 	int fullscreenWidth=0;
 	int fullscreenHeight=0;
-	TCOD_renderer_t renderer=TCOD_RENDERER_GLSL;
+	TCOD_renderer_t renderer=TCOD_RENDERER_SDL;
 	bool fullscreen=false;
 	int fontFlags=TCOD_FONT_TYPE_GREYSCALE|TCOD_FONT_LAYOUT_TCOD, fontNewFlags=0;
 	bool creditsEnd=false;
@@ -1463,7 +1471,7 @@ int main( int argc, char *argv[] ) {
 			printf ("-renderer <num> : set renderer. 0 : GLSL 1 : OPENGL 2 : SDL\n");
 			exit(0);
 		} else {
-			argn++; // ignore parameter
+			// ignore parameter
 		}
 	}
 
@@ -1502,7 +1510,7 @@ int main( int argc, char *argv[] ) {
 			TCODConsole::isFullscreen() ? "windowed mode  " : "fullscreen mode");
 
 		// render current sample
-		samples[curSample].render(first,&key);
+		samples[curSample].render(first,&key,&mouse);
 		first=false;
 
 		// blit the sample console on the root console
@@ -1539,7 +1547,7 @@ int main( int argc, char *argv[] ) {
 		TCODConsole::flush();
 
 		// did the user hit a key ?
-		key = TCODConsole::checkForKeypress();
+		TCODSystem::checkForEvent((TCOD_event_t)(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE),&key,&mouse);
 		if ( key.vk == TCODK_DOWN ) {
 			// down arrow : next sample
 			curSample = (curSample+1) % nbSamples;
@@ -1552,11 +1560,20 @@ int main( int argc, char *argv[] ) {
 		} else if ( key.vk == TCODK_ENTER && key.lalt ) {
 			// ALT-ENTER : switch fullscreen
 			TCODConsole::setFullscreen(!TCODConsole::isFullscreen());
+#ifdef TCOD_LINUX
+		} else if ( key.c == 'p' ) {
+#else
 		} else if ( key.vk == TCODK_PRINTSCREEN ) {
-			/* save screenshot */
-			TCODSystem::saveScreenshot(NULL);
+#endif
+			if ( key.lalt ) {
+				// ALT-PrintScreen : save to .asc format
+				TCODConsole::root->saveApf("samples.apf");
+			} else {
+				// save screenshot 
+				TCODSystem::saveScreenshot(NULL);
+			}
 		} else if (key.vk==TCODK_F1) {
-			/* switch renderers with F1,F2,F3 */
+			// switch renderers with F1,F2,F3 
 			TCODSystem::setRenderer(TCOD_RENDERER_GLSL);
 		} else if (key.vk==TCODK_F2) {
 			TCODSystem::setRenderer(TCOD_RENDERER_OPENGL);

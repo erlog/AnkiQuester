@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -102,6 +102,8 @@ typedef struct {
 	char window_title[512];
 	/* ascii code to tcod layout converter */
 	int *ascii_to_tcod;
+	/* whether each character in the font is a colored tile */
+	bool *colored;
 	/* the root console */
 	TCOD_console_data_t *root;
 	/* nb chars in the font */
@@ -126,6 +128,23 @@ typedef struct {
 } TCOD_internal_context_t;
 
 extern TCOD_internal_context_t TCOD_ctx;
+
+#if defined(__ANDROID__) && !defined(NDEBUG)
+#include <android/log.h>
+#ifdef printf
+#undef printf
+#endif
+#ifdef vprintf
+#undef vprintf
+#endif
+#define printf(args...) __android_log_print(ANDROID_LOG_INFO, "libtcod", ## args)
+#define vprintf(args...) __android_log_vprint(ANDROID_LOG_INFO, "libtcod", ## args)
+
+#ifdef assert
+#undef assert
+#endif
+#define assert(cond) if(!(cond)) __android_log_assert(#cond, "libtcod", "assertion failed: %s", #cond)
+#endif
 
 #ifdef NDEBUG
 #define TCOD_IF(x) if (x)
@@ -160,8 +179,8 @@ void TCOD_map_postproc(map_t *map,int x0,int y0, int x1, int y1, int dx, int dy)
 /* TCODConsole non public methods*/
 bool TCOD_console_init(TCOD_console_t con,const char *title, bool fullscreen);
 int TCOD_console_print_internal(TCOD_console_t con,int x,int y, int w, int h, TCOD_bkgnd_flag_t flag, TCOD_alignment_t align, char *msg, bool can_split, bool count_only);
-int TCOD_console_stringLength(const char *s);
-char * TCOD_console_forward(char *s,int l);
+int TCOD_console_stringLength(const unsigned char *s);
+unsigned char * TCOD_console_forward(unsigned char *s,int l);
 void TCOD_console_set_window_closed();
 char *TCOD_console_vsprint(const char *fmt, va_list ap);
 char_t *TCOD_console_get_buf(TCOD_console_t con);
@@ -170,7 +189,7 @@ void TCOD_fatal(const char *fmt, ...);
 void TCOD_fatal_nopar(const char *msg);
 
 /* TCODSystem non public methods */
-void TCOD_sys_startup();
+TCODLIB_API void TCOD_sys_startup();
 bool TCOD_sys_init(int w,int h, char_t *buf, char_t *oldbuf, bool fullscreen);
 void TCOD_sys_set_custom_font(const char *font_name,int nb_ch, int nb_cv,int flags);
 void TCOD_sys_map_ascii_to_font(int asciiCode, int fontCharX, int fontCharY);

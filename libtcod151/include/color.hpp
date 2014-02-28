@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -317,7 +317,7 @@ coef should be between 0.0 and 1.0 but you can as well use other values
 	@FuncDesc After this function is called, the r,g,b fields of the color are calculated according to the h,s,v parameters.
 	@Cpp void TCODColor::setHSV(float h, float s, float v)
 	@C void TCOD_color_set_HSV(TCOD_color_t *c,float h, float s, float v)
-	@Py color_set_HSV(c,h,s,v)
+	@Py color_set_hsv(c,h,s,v)
 	@C# void TCODColor::setHSV(float h, float s, float v)
 	@Lua Color:setHSV( h, s ,v )
 	@Param c In the C and python versions, the color to modify

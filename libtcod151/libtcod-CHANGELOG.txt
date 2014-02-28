@@ -3,7 +3,11 @@ X API break
 % modified features
 - removed features, fixed bugs
 =========================================================
-1.5.1 : ???? ??? ??
+1.5.1 : 2012 Aug 29
+X TCOD_console_wait_for_keypress, TCOD_console_check_for_keypress, TCOD_mouse_get_status
+  replaced with TCOD_sys_check_for_event and TCOD_sys_wait_for_event
+X source width and height can be 0 in TCODConsole::blit to blit the whole console 
+X Some of the parser-related functions now can be chained.
 X The RNG API now has less functions that choose the distribution based on the set flags.
 X The noise API now has less functions that choose the noise type based on the set flags.
 X Console default and cell foreground and background colour getters and setters renamed to more intuitive names:
@@ -37,12 +41,22 @@ X TCODConsole::getHeightLeft/Right/CenterRect replaced by
 	(the 3 functions were useless, the height does not depend on the alignement... X( )
 X TCODConsole::initRoot has an additional renderer parameter :
    static void TCODConsole::initRoot(int w, int h, const char * title, bool fullscreen = false, 
-       TCOD_renderer_t renderer=TCOD_RENDERER_GLSL);
+       TCOD_renderer_t renderer=TCOD_RENDERER_SDL);
    Possible values : TCOD_RENDERER_GLSL, TCOD_RENDERER_OPENGL or TCOD_RENDERER_SDL
 X TCODMap::clear now sets walkable and transparent status of all cells:
     void TCODMap::clear (bool transparent = false, bool walkable = false)
     void TCOD_map_clear (TCOD_map_t map, bool transparent, bool walkable)
     map_clear (map, transparent, walkable)
++ cmake compilation works on FreeBSD thanks to namor_     
++ added support for python3k. The samples run with python 3.2.3    
++ added support for colored tiles. Standard font characters MUST only use greyscale colors.    
++ added native support for .ASC and .APF file (Ascii Paint format)
+  * TCODConsole::TCODConsole(const char *filename)
+  * bool TCODConsole::loadAsc(const char *filename)
+  * bool TCODConsole::saveAsc(const char *filename) const    
+  * bool TCODConsole::loadApf(const char *filename)
+  * bool TCODConsole::saveApf(const char *filename) const    
++ added mouse wheel support in TCOD_mouse_t.wheel_up/wheel_down  
 + added TCODSystem::fileExists function for checking whether a given file exists
 + added dice to the TCODRandom toolkit
 + added support for dynamic property declaration in the parser
@@ -68,6 +82,11 @@ X TCODMap::clear now sets walkable and transparent status of all cells:
 % hardened fov module
 % extended list of colour constants (the old names can produce slightly different colours)
 % TCODMap memory consumption divided by 4
+% now mouse wheel events are properly detected
+- fixed namegen crash if generator list is empty
+- fixed permissive fov when light_walls is false
+- fixed possible crash when clearing an offscreen console before calling initRoot
+- fix possible crash when printing a string containing ascii codes > 127
 - fixed TCODNamegen returning integers in the python version
 - fixed TCODDijkstra segfault when diagonal movement cost was zero
 - fixed setDirty() not working for the last row or column of the console
@@ -77,6 +96,7 @@ X TCODMap::clear now sets walkable and transparent status of all cells:
 - fixed TCODColor::setHSV bug when using hues below 0 or above 359 grades
 - fixed some rare issues in A* pathfinding 
 - fixed issue in TCODImage::blit2x when blitting only a subregion of the image
+- fixed memory leak in TCODImage::save
 =========================================================
 1.5.0 : 2010 Feb 15
 X TCODRandom::getIntFromByteArray has been deleted    

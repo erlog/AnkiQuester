@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -72,18 +72,20 @@ public :
 	/**
 	@PageName mouse
 	@FuncTitle Getting the mouse status
-	@FuncDesc You can read the current mouse status with:
+	@FuncDesc You can read the current mouse status with this function. Note that this function does not update the mouse status. You have to call either TCODSystem::checkForEvent or TCODSystem::waitForEvent for the mouse status to be updated.
 <div class="code"><pre>typedef struct {
-    int x, y;
-    int dx, dy;
-    int cx, cy;
-    int dcx, dcy;
-    unsigned lbutton : 1;
-    unsigned rbutton : 1;
-    unsigned mbutton : 1;
-    unsigned lbutton_pressed : 1;
-    unsigned rbutton_pressed : 1;
-    unsigned mbutton_pressed : 1;
+  int x,y;
+  int dx,dy;
+  int cx,cy;
+  int dcx,dcy;
+  bool lbutton; 
+  bool rbutton;
+  bool mbutton;
+  bool lbutton_pressed; 
+  bool rbutton_pressed; 
+  bool mbutton_pressed; 
+  bool wheel_up;
+  bool wheel_down;
 } TCOD_mouse_t;
 </pre></div>
 	@Cpp static TCOD_mouse_t TCODMouse::getStatus (void)
@@ -100,6 +102,8 @@ public :
 	@Param lbutton_pressed	true if the left button was pressed and released.
 	@Param rbutton_pressed	true if the right button was pressed and released.
 	@Param mbutton_pressed	true if the middle button was pressed and released.
+	@Param wheel_up	true if the wheel was rolled up.
+	@Param wheel_down	true if the wheel was rolled down.
 	*/
 	static TCOD_mouse_t getStatus();
 };

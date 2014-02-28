@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -188,13 +188,13 @@ void TCOD_console_fill_foreground(TCOD_console_t con, int *r, int *g, int *b) {
 	}
 }
 
-void TCOD_console_fill_char(TCOD_console_t con, char *arr) {
+void TCOD_console_fill_char(TCOD_console_t con, int *arr) {
 	TCOD_console_data_t *dat = con ? (TCOD_console_data_t *)con : TCOD_ctx.root;
 	int i;
 	char_t *curchar=dat->buf;
 	for (i=0; i < dat->w*dat->h; i++) {
 		curchar->c=*arr;
-		curchar->cf=TCOD_ctx.ascii_to_tcod[(int)(*arr)];
+		curchar->cf=TCOD_ctx.ascii_to_tcod[*arr];
 		curchar++;
 		arr++;
 	}
@@ -249,7 +249,6 @@ void TCOD_image_set_key_color_wrapper(TCOD_image_t image,
 			    int_to_color(key_color));
 }
 
-
 bool TCOD_console_check_for_keypress_wrapper (TCOD_key_t *holder, int flags)
 {
   *holder = TCOD_console_check_for_keypress(flags);
@@ -262,102 +261,8 @@ void TCOD_console_wait_for_keypress_wrapper (TCOD_key_t *holder, bool flush)
   *holder = TCOD_console_wait_for_keypress(flush);
 }
 
-/* Global variable, mouse_get_status stores each retrieved
-   mouse status in this variable. */
-static TCOD_mouse_t mouse_status;
-
-void TCOD_mouse_get_status_wrapper(TCOD_mouse_t *holder)
-{
-  mouse_status = TCOD_mouse_get_status();
-  if(holder)
-    *holder = mouse_status;
-}
-
-
-/* The following functions all return information about the last
-   mouse status that was retrieved by TCOD_get_mouse_status_wrapper.
-   They do not query the current mouse status. */
-int TCOD_mouse_get_x()
-{
-  return mouse_status.x;
-}
-
-
-int TCOD_mouse_get_y()
-{
-  return mouse_status.y;
-}
-
-
-int TCOD_mouse_get_cx()
-{
-  return mouse_status.cx;
-}
-
-
-int TCOD_mouse_get_cy()
-{
-  return mouse_status.cy;
-}
-
-
-int TCOD_mouse_get_dx()
-{
-  return mouse_status.dx;
-}
-
-
-int TCOD_mouse_get_dy()
-{
-  return mouse_status.dy;
-}
-
-
-int TCOD_mouse_get_dcx()
-{
-  return mouse_status.dcx;
-}
-
-
-int TCOD_mouse_get_dcy()
-{
-  return mouse_status.dcy;
-}
-
-
-unsigned int TCOD_mouse_get_lbutton()
-{
-  return mouse_status.lbutton;
-}
-
-
-unsigned int TCOD_mouse_get_mbutton()
-{
-  return mouse_status.mbutton;
-}
-
-
-unsigned int TCOD_mouse_get_rbutton()
-{
-  return mouse_status.rbutton;
-}
-
-
-unsigned int TCOD_mouse_get_lbutton_pressed()
-{
-  return mouse_status.lbutton_pressed;
-}
-
-
-unsigned int TCOD_mouse_get_mbutton_pressed()
-{
-  return mouse_status.mbutton_pressed;
-}
-
-
-unsigned int TCOD_mouse_get_rbutton_pressed()
-{
-  return mouse_status.rbutton_pressed;
+void TCOD_mouse_get_status_wrapper(TCOD_mouse_t *mouse) {
+	*mouse=TCOD_mouse_get_status();
 }
 
 /* Routines to draw hlines, vlines and frames using the double-lined
@@ -453,39 +358,7 @@ int TCOD_sys_get_current_resolution_y()
   return y;
 }
 
-/* Encode key struct as a 4-byte integer:
- *
- *    flags     VK    <-char code->
- *  |---4---|---3---|---2---|---1---|
- *
- * char gets 2 bytes to allow for unicode.
- */
-
-uint32 key_struct_to_bitfield(TCOD_key_t key)
+void TCOD_console_set_key_color_wrapper (TCOD_console_t con, colornum_t c)
 {
-  uint32 bf = key.c | (key.vk << 16);
-  bf |= (key.pressed | (key.lalt << 1) | (key.lctrl << 2)
-         | (key.ralt << 3) | (key.rctrl << 4) | (key.shift << 5)) << 24;
-  return bf;
-}
-
-uint32 TCOD_console_wait_for_keypress_bitfield (bool flush)
-{
-  /* Waits until a key is pressed, then returns it */
-  TCOD_key_t key = TCOD_console_wait_for_keypress(flush);
-  return key_struct_to_bitfield(key);
-}
-
-
-uint32 TCOD_console_check_for_keypress_bitfield (int flags)
-{
-  /* Return the 'next' key pressed.
-     If no key has been pressed, returns a key event where
-     vk = TCODK_NONE
-     Flags is a bitfield which may contain:
-     - TCOD_KEY_PRESSED -- only return 'press' events
-     - TCOD_KEY_RELEASED -- only return 'release' events
-  */
-  TCOD_key_t key = TCOD_console_check_for_keypress(flags);
-  return key_struct_to_bitfield(key);
+  TCOD_console_set_key_color(con, int_to_color(c));
 }

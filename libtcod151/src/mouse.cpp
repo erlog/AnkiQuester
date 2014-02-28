@@ -1,6 +1,6 @@
 /*
 * libtcod 1.5.1
-* Copyright (c) 2008,2009,2010 Jice & Mingos
+* Copyright (c) 2008,2009,2010,2012 Jice & Mingos
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -26,19 +26,19 @@
 */
 #include "libtcod.hpp"
 
-TCOD_mouse_t TCODMouse::getStatus() {
-  return TCOD_mouse_get_status();
-}
-
 void TCODMouse::showCursor(bool visible) {
-  TCOD_mouse_show_cursor(visible);
+	TCOD_mouse_show_cursor(visible);
 }
 
 bool TCODMouse::isCursorVisible() {
-  return TCOD_mouse_is_cursor_visible() != 0;
+	return TCOD_mouse_is_cursor_visible() != 0;
 }
 
 void TCODMouse::move(int x, int y) {
-  TCOD_mouse_move(x,y);
+	TCOD_mouse_move(x,y);
+}
+
+TCOD_mouse_t TCODMouse::getStatus() {
+	return TCOD_mouse_get_status();
 }
 
