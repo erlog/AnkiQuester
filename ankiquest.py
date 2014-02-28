@@ -35,15 +35,15 @@ def anki_quester():
 	AQIOController = IOController()
 	
 	#hook the review process to construct our game loop
-	#if not AQ_DEBUG:
-	#	mw.reviewer._answerCard = catch_review
+	if not AQ_DEBUG:
+		mw.reviewer._answerCard = catch_answer
 	
 	while not libtcod.console_is_window_closed(): 
-		AQIOController.RefreshWindow(AQGameInstance)
+		AQIOController.Update(AQGameInstance)
 
-def catch_review(ease):
-	AQGameInstance.ShuffleNPEs()
-	AQIOController.RefreshWindow(AQGameInstance)
+def catch_answer(ease):
+	if mw.reviewer.state == "answer":
+		AQGameInstance.AQAnswerResult = ease
 	OLD_answerCard(ease)
 
 if not AQ_DEBUG:
@@ -57,6 +57,7 @@ class AnkiQuester:
 	def __init__(self):
 		self.Player = Entity()
 		self.NPEs = [Entity(None, random.randint(0,79), random.randint(0, 49), "d")]
+		self.AQAnswerResult = None
 	
 	def PlayerMove(self, direction):
 		oldxy = (self.Player.X, self.Player.Y)
@@ -72,8 +73,10 @@ class AnkiQuester:
 			self.Player.Y = oldxy[1]
 			#simple code to vanquish an enemy and spawn a new one
 			if collisionentity in self.NPEs:
-				self.NPEs.remove(collisionentity)
-				self.NPEs.append(Entity(None, random.randint(0,79), random.randint(0, 49), "d"))
+				attackresult = self.DoFlashcard()
+				if attackresult > 1:
+					self.NPEs.remove(collisionentity)
+					self.NPEs.append(Entity(None, random.randint(0,79), random.randint(0, 49), "d"))
 		
 	def CollisionCheck(self, x, y):
 		#check for collision on an existing entity, this is inefficient, but I don't care right now
@@ -88,8 +91,21 @@ class AnkiQuester:
 	def ShuffleNPEs(self):
 		for entity in self.NPEs:
 			entity.X = random.randint(0,79)
-			entity.Y = random.randint(0,49)
-		
+			entity.Y = random.randint(0,48)
+	
+	def DoFlashcard(self):
+		if AQ_DEBUG:
+			return 2
+		else:
+			self.AQAnswerResult = None
+			AQIOController.FocusAnki()
+			
+			while self.AQAnswerResult == None:
+				AQIOController.PauseForReview(AQGameInstance)
+				
+			AQIOController.FocusGame()
+			return self.AQAnswerResult
+	
 class IOController:
 	def __init__(self):
 		#Set up libtcod
@@ -101,7 +117,13 @@ class IOController:
 		libtcod.sys_set_fps(self.LIMIT_FPS)
 		self.con = libtcod.console_new(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
 	
-	def HandleKeys(self, state, key):
+	def FocusGame(self):
+		libtcod.console_init_root(self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 'AnkiQuest', False)
+	
+	def FocusAnki(self):
+		mw.setFocus()
+	
+	def HandleKeys(self, state, ispressed):
 		if libtcod.console_is_key_pressed(libtcod.KEY_UP): state.PlayerMove("Up")
 		elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN): state.PlayerMove("Down")
 		elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT): state.PlayerMove("Left")
@@ -116,11 +138,24 @@ class IOController:
 			libtcod.console_put_char(self.con, entity.X, entity.Y, " ", libtcod.BKGND_NONE)
 	
 	def RefreshWindow(self, state):
-		self.HandleKeys(state, libtcod.console_check_for_keypress())
 		self.DrawEntities(state.Entities())
 		libtcod.console_blit(self.con, 0, 0, self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 0, 0, 0)
 		libtcod.console_flush()
 		self.EraseEntities(state.Entities())
+	
+	def Update(self, state):
+		self.HandleKeys(state, libtcod.console_check_for_keypress())
+		self.RefreshWindow(state)
+	
+	def Pause(self, state):
+		libtcod.console_check_for_keypress()
+		self.RefreshWindow(state)
+	
+	def PauseForReview(self, state):
+		libtcod.console_print(self.con, 0, 49, "Paused for Card Answer")
+		libtcod.console_check_for_keypress()
+		self.RefreshWindow(state)
+		libtcod.console_print(self.con, 0, 49, "                      ")
 			
 class Entity:
 	def __init__(self, initstats = {"HP": 100, "Strength": 10, "Speed": 100, "Luck": 10}, xpos = 0, ypos = 0, tile = "@"):
