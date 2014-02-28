@@ -16,14 +16,19 @@ except ImportError:
 	AQ_PATH = os.path.abspath(os.curdir)
 	import pdb
 	
-#Load libtcod
-libtcodpath = os.path.normpath(os.path.join(AQ_PATH, "libtcod151/"))
-os.chdir(libtcodpath)
-sys.path.append(libtcodpath)
-import libtcodpy as libtcod
+
 	
 def anki_quester():
-	global AQGameInstance, AQIOController
+	global libtcod, AQGameInstance, AQIOController
+	
+	#Load libtcod
+	libtcodpath = os.path.normpath(os.path.join(AQ_PATH, "libtcod151/"))
+	os.chdir(libtcodpath)
+	sys.path.append(libtcodpath)
+	
+	#scope gets weird with Anki plugins, and so this way we can be sure our libtcod will be available where we need it
+	import libtcodpy
+	libtcod = libtcodpy
 	
 	#Set up our game objects
 	AQGameInstance = AnkiQuester()
