@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os, sys, random, pdb
+from math import ceil
 
 #Check to see if we're running inside Anki, and load appropriate Anki libraries
 try:
@@ -59,6 +60,7 @@ class AnkiQuester:
 		self.NPEs = [Entity(None, random.randint(0,60), random.randint(0, 40), "d")]
 		self.AQAnswerResult = None
 		self.Messages = []
+		self.TurnCounter = 0
 	
 	def PlayerMove(self, direction):
 		oldxy = (self.Player.X, self.Player.Y)
@@ -67,6 +69,7 @@ class AnkiQuester:
 		elif direction == "Down": self.Player.Y += 1
 		elif direction == "Left": self.Player.X -= 1
 		elif direction == "Right": self.Player.X += 1
+		elif direction == "Rest": pass
 		
 		collisionentity = self.CollisionCheck(self.Player.X, self.Player.Y)
 		if collisionentity != False:
@@ -91,18 +94,16 @@ class AnkiQuester:
 	
 	def GiveXP(self, entity, xp):
 		entity.Stats["XP"] += xp
-		requiredxp = 2**entity.Stats["Level"]
-		if entity.Stats["XP"] >= requiredxp:
+		while entity.Stats["XP"] >= 2**entity.Stats["Level"]*15:
 			entity.Stats["Level"] += 1
-			self.Messages.append("Level up!")
+			self.Messages.append("Level up! Welcome to Level {0}!".format(entity.Stats["Level"]))
 	
 	def Entities(self):
 		return [self.Player] + self.NPEs
 	
-	def ShuffleNPEs(self):
+	def MoveNPEs(self):
 		for entity in self.NPEs:
-			entity.X = random.randint(0,60)
-			entity.Y = random.randint(0,40)
+			entity.MoveCloserTo(self.Player)
 	
 	def DoFlashcard(self):
 		if AQ_DEBUG:
@@ -128,8 +129,8 @@ class IOController:
 		self.MSG_HEIGHT = 5
 		self.DUNGEON_WIDTH = self.SCREEN_WIDTH - self.STATUS_WIDTH
 		self.DUNGEON_HEIGHT = self.SCREEN_HEIGHT - self.MSG_HEIGHT
-		self.LIMIT_FPS = 10
-		
+		self.LIMIT_FPS = 30
+	
 		libtcod.console_set_custom_font('consolas12x12_gs_tc.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 		libtcod.console_init_root(self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 'AnkiQuest', False)
 		libtcod.sys_set_fps(self.LIMIT_FPS)
@@ -145,11 +146,19 @@ class IOController:
 	def FocusAnki(self):
 		mw.setFocus()
 	
-	def HandleKeys(self, state, ispressed):
-		if libtcod.console_is_key_pressed(libtcod.KEY_UP): state.PlayerMove("Up")
-		elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN): state.PlayerMove("Down")
-		elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT): state.PlayerMove("Left")
-		elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT): state.PlayerMove("Right")
+	def HandleKeys(self, state, key):
+		if key == libtcod.KEY_NONE:
+			return False
+		elif key == libtcod.KEY_UP: state.PlayerMove("Up")
+		elif key == libtcod.KEY_DOWN: state.PlayerMove("Down")
+		elif key == libtcod.KEY_LEFT: state.PlayerMove("Left")
+		elif key == libtcod.KEY_RIGHT: state.PlayerMove("Right")
+		elif (key == libtcod.KEY_SPACE) or (key == libtcod.KEY_CHAR): state.PlayerMove("Rest")
+		elif (key == libtcod.KEY_ESCAPE) and AQ_DEBUG: sys.exit()
+		else:
+			return False
+		
+		return True
 	
 	def DrawEntities(self, entities):
 		for entity in entities:
@@ -168,7 +177,9 @@ class IOController:
 		self.EraseEntities(state.Entities())
 	
 	def Update(self, state):
-		self.HandleKeys(state, libtcod.console_check_for_keypress())
+		if self.HandleKeys(state, libtcod.console_check_for_keypress().vk):
+			state.TurnCounter += 1
+			state.MoveNPEs()
 		self.UpdateStatusWindow(state)
 		self.UpdateMessageLog(state)
 		self.RefreshWindow(state)
@@ -180,6 +191,9 @@ class IOController:
 		for stat in state.Player.DisplayedStats:
 			if stat != "": libtcod.console_print(self.statuswindow, 0, currentline, "{0}: {1}".format(stat, state.Player.Stats[stat]) )
 			currentline += 1
+		libtcod.console_print(self.statuswindow, 0, currentline+2, "Turn: {0}".format(state.TurnCounter))
+		if AQ_DEBUG:
+			libtcod.console_print(self.statuswindow, 0, currentline+3, "FPS: {0}".format(libtcod.sys_get_fps()))
 	
 	def UpdateMessageLog(self, state):
 		libtcod.console_clear(self.messagelog)
@@ -209,6 +223,14 @@ class Entity:
 		self.X = xpos
 		self.Y = ypos
 		self.Tile = tile
+	
+	def MoveCloserTo(self, entity):
+		distance = random.randint(0, int(ceil(self.Stats["Speed"]/100)))
+		if (self.X > entity.X) and (self.X - distance != entity.X): self.X -= distance
+		if (self.X < entity.X) and (self.X + distance != entity.X): self.X += distance
+		if (self.Y > entity.Y) and (self.Y - distance != entity.Y): self.Y -= distance
+		if (self.Y < entity.Y) and (self.Y + distance != entity.Y): self.Y += distance
 
+		
 if __name__ == "__main__":
 	anki_quester()
