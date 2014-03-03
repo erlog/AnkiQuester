@@ -126,7 +126,7 @@ class IOController:
 		self.STATUS_WIDTH = 15
 		self.STATUS_HEIGHT = self.SCREEN_HEIGHT
 		self.MSG_WIDTH = self.SCREEN_WIDTH-self.STATUS_WIDTH
-		self.MSG_HEIGHT = 5
+		self.MSG_HEIGHT = 6
 		self.DUNGEON_WIDTH = self.SCREEN_WIDTH - self.STATUS_WIDTH
 		self.DUNGEON_HEIGHT = self.SCREEN_HEIGHT - self.MSG_HEIGHT
 		self.LIMIT_FPS = 30
@@ -155,6 +155,7 @@ class IOController:
 		elif key == libtcod.KEY_RIGHT: state.PlayerMove("Right")
 		elif (key == libtcod.KEY_SPACE) or (key == libtcod.KEY_CHAR): state.PlayerMove("Rest")
 		elif (key == libtcod.KEY_ESCAPE) and AQ_DEBUG: sys.exit()
+		elif (key == libtcod.KEY_F2) and AQ_DEBUG: pdb.set_trace()
 		else:
 			return False
 		
@@ -185,22 +186,22 @@ class IOController:
 		self.RefreshWindow(state)
 	
 	def UpdateStatusWindow(self, state):
-		libtcod.console_clear(self.statuswindow)
-		libtcod.console_print(self.statuswindow, 0, 0, "STATUS-")
+		libtcod.console_print_frame(self.statuswindow, 0, 0, self.STATUS_WIDTH, self.STATUS_HEIGHT)
+		libtcod.console_print(self.statuswindow, 1, 0, "STATUS")
 		currentline = 1
 		for stat in state.Player.DisplayedStats:
-			if stat != "": libtcod.console_print(self.statuswindow, 0, currentline, "{0}: {1}".format(stat, state.Player.Stats[stat]) )
+			if stat != "": libtcod.console_print(self.statuswindow, 1, currentline, "{0}: {1}".format(stat, state.Player.Stats[stat]) )
 			currentline += 1
-		libtcod.console_print(self.statuswindow, 0, currentline+2, "Turn: {0}".format(state.TurnCounter))
+		libtcod.console_print(self.statuswindow, 1, currentline+2, "Turn: {0}".format(state.TurnCounter))
 		if AQ_DEBUG:
-			libtcod.console_print(self.statuswindow, 0, currentline+3, "FPS: {0}".format(libtcod.sys_get_fps()))
+			libtcod.console_print(self.statuswindow, 1, currentline+3, "FPS: {0}".format(libtcod.sys_get_fps()))
 	
 	def UpdateMessageLog(self, state):
-		libtcod.console_clear(self.messagelog)
-		libtcod.console_print(self.messagelog, 0, 0, "MESSAGES-")
+		libtcod.console_print_frame(self.messagelog, 0, 0, self.MSG_WIDTH, self.MSG_HEIGHT)
+		libtcod.console_print(self.messagelog, 1, 0, "MESSAGES")
 		currentline = 1
-		for message in state.Messages[(-1)*(self.MSG_HEIGHT-1):]:
-			libtcod.console_print(self.messagelog, 0, currentline, message)
+		for message in state.Messages[(-1)*(self.MSG_HEIGHT-2):]:
+			libtcod.console_print(self.messagelog, 1, currentline, message)
 			currentline += 1
 	
 	def Pause(self, state):
@@ -225,11 +226,12 @@ class Entity:
 		self.Tile = tile
 	
 	def MoveCloserTo(self, entity):
+		#Base speed of 100 = 1 turn/second
 		distance = random.randint(0, int(ceil(self.Stats["Speed"]/100)))
 		if (self.X > entity.X) and (self.X - distance != entity.X): self.X -= distance
-		if (self.X < entity.X) and (self.X + distance != entity.X): self.X += distance
+		elif (self.X < entity.X) and (self.X + distance != entity.X): self.X += distance
 		if (self.Y > entity.Y) and (self.Y - distance != entity.Y): self.Y -= distance
-		if (self.Y < entity.Y) and (self.Y + distance != entity.Y): self.Y += distance
+		elif (self.Y < entity.Y) and (self.Y + distance != entity.Y): self.Y += distance
 
 		
 if __name__ == "__main__":
