@@ -56,8 +56,9 @@ if not AQ_DEBUG:
 class AnkiQuester:
 	def __init__(self):
 		self.Player = Entity()
-		self.NPEs = [Entity(None, random.randint(0,79), random.randint(0, 49), "d")]
+		self.NPEs = [Entity(None, random.randint(0,60), random.randint(0, 40), "d")]
 		self.AQAnswerResult = None
+		self.Messages = []
 	
 	def PlayerMove(self, direction):
 		oldxy = (self.Player.X, self.Player.Y)
@@ -75,8 +76,11 @@ class AnkiQuester:
 			if collisionentity in self.NPEs:
 				attackresult = self.DoFlashcard()
 				if attackresult > 1:
+					self.Messages.append("Vanquished!")
 					self.NPEs.remove(collisionentity)
-					self.NPEs.append(Entity(None, random.randint(0,79), random.randint(0, 49), "d"))
+					self.NPEs.append(Entity(None, random.randint(0,60), random.randint(0, 40), "d"))
+					self.GiveXP(self.Player, collisionentity.Stats["HP"])
+					
 		
 	def CollisionCheck(self, x, y):
 		#check for collision on an existing entity, this is inefficient, but I don't care right now
@@ -85,13 +89,20 @@ class AnkiQuester:
 			
 		return False
 	
+	def GiveXP(self, entity, xp):
+		entity.Stats["XP"] += xp
+		requiredxp = 2**entity.Stats["Level"]
+		if entity.Stats["XP"] >= requiredxp:
+			entity.Stats["Level"] += 1
+			self.Messages.append("Level up!")
+	
 	def Entities(self):
 		return [self.Player] + self.NPEs
 	
 	def ShuffleNPEs(self):
 		for entity in self.NPEs:
-			entity.X = random.randint(0,79)
-			entity.Y = random.randint(0,48)
+			entity.X = random.randint(0,60)
+			entity.Y = random.randint(0,40)
 	
 	def DoFlashcard(self):
 		if AQ_DEBUG:
@@ -111,11 +122,22 @@ class IOController:
 		#Set up libtcod
 		self.SCREEN_WIDTH = 80
 		self.SCREEN_HEIGHT = 50
+		self.STATUS_WIDTH = 15
+		self.STATUS_HEIGHT = self.SCREEN_HEIGHT
+		self.MSG_WIDTH = self.SCREEN_WIDTH-self.STATUS_WIDTH
+		self.MSG_HEIGHT = 5
+		self.DUNGEON_WIDTH = self.SCREEN_WIDTH - self.STATUS_WIDTH
+		self.DUNGEON_HEIGHT = self.SCREEN_HEIGHT - self.MSG_HEIGHT
 		self.LIMIT_FPS = 10
-		libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
+		
+		libtcod.console_set_custom_font('consolas12x12_gs_tc.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 		libtcod.console_init_root(self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 'AnkiQuest', False)
 		libtcod.sys_set_fps(self.LIMIT_FPS)
-		self.con = libtcod.console_new(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
+		
+		self.messagelog = libtcod.console_new(self.MSG_WIDTH, self.MSG_HEIGHT)
+		self.statuswindow = libtcod.console_new(self.STATUS_WIDTH, self.STATUS_HEIGHT)
+		self.dungeon = libtcod.console_new(self.DUNGEON_WIDTH, self.DUNGEON_HEIGHT)
+
 	
 	def FocusGame(self):
 		libtcod.console_init_root(self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 'AnkiQuest', False)
@@ -131,35 +153,59 @@ class IOController:
 	
 	def DrawEntities(self, entities):
 		for entity in entities:
-			libtcod.console_put_char(self.con, entity.X, entity.Y, entity.Tile, libtcod.BKGND_NONE)
+			libtcod.console_put_char(self.dungeon, entity.X, entity.Y, entity.Tile, libtcod.BKGND_NONE)
 	
 	def EraseEntities(self, entities):
 		for entity in entities:
-			libtcod.console_put_char(self.con, entity.X, entity.Y, " ", libtcod.BKGND_NONE)
+			libtcod.console_put_char(self.dungeon, entity.X, entity.Y, " ", libtcod.BKGND_NONE)
 	
 	def RefreshWindow(self, state):
 		self.DrawEntities(state.Entities())
-		libtcod.console_blit(self.con, 0, 0, self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 0, 0, 0)
+		libtcod.console_blit(self.dungeon, 0, 0, self.DUNGEON_WIDTH, self.DUNGEON_HEIGHT, 0, 0, 0)
+		libtcod.console_blit(self.messagelog, 0, 0, self.MSG_WIDTH, self.MSG_HEIGHT, 0, 0, self.DUNGEON_HEIGHT)
+		libtcod.console_blit(self.statuswindow, 0, 0, self.STATUS_WIDTH, self.STATUS_HEIGHT, 0, self.DUNGEON_WIDTH, 0)
 		libtcod.console_flush()
 		self.EraseEntities(state.Entities())
 	
 	def Update(self, state):
 		self.HandleKeys(state, libtcod.console_check_for_keypress())
+		self.UpdateStatusWindow(state)
+		self.UpdateMessageLog(state)
 		self.RefreshWindow(state)
+	
+	def UpdateStatusWindow(self, state):
+		libtcod.console_clear(self.statuswindow)
+		libtcod.console_print(self.statuswindow, 0, 0, "STATUS-")
+		currentline = 1
+		for stat in state.Player.DisplayedStats:
+			if stat != "": libtcod.console_print(self.statuswindow, 0, currentline, "{0}: {1}".format(stat, state.Player.Stats[stat]) )
+			currentline += 1
+	
+	def UpdateMessageLog(self, state):
+		libtcod.console_clear(self.messagelog)
+		libtcod.console_print(self.messagelog, 0, 0, "MESSAGES-")
+		currentline = 1
+		for message in state.Messages[(-1)*(self.MSG_HEIGHT-1):]:
+			libtcod.console_print(self.messagelog, 0, currentline, message)
+			currentline += 1
 	
 	def Pause(self, state):
 		libtcod.console_check_for_keypress()
 		self.RefreshWindow(state)
 	
 	def PauseForReview(self, state):
-		libtcod.console_print(self.con, 0, 49, "Paused for Card Answer")
+		#libtcod.console_print(self.con, 0, 49, "Paused for Card Answer")
 		libtcod.console_check_for_keypress()
 		self.RefreshWindow(state)
-		libtcod.console_print(self.con, 0, 49, "                      ")
+		#libtcod.console_print(self.con, 0, 49, "                      ")
 			
 class Entity:
-	def __init__(self, initstats = {"HP": 100, "Strength": 10, "Speed": 100, "Luck": 10}, xpos = 0, ypos = 0, tile = "@"):
-		self.Stats = initstats
+	def __init__(self, initstats = None, xpos = 0, ypos = 0, tile = "@"):
+		if not initstats:
+			self.Stats = {"HP": 10, "Strength": 10, "Speed": 100, "Luck": 10, "XP": 0, "Level": 1}
+		else:
+			self.Stats = initstats
+		self.DisplayedStats = ["HP", "Strength", "Speed", "", "Level", "XP"]
 		self.X = xpos
 		self.Y = ypos
 		self.Tile = tile
