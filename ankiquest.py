@@ -56,11 +56,16 @@ if not AQ_DEBUG:
 	
 class AnkiQuester:
 	def __init__(self):
+		self.CurrentFloor = DungeonFloor()
 		self.Player = Entity()
+		self.Player.X = random.randint(0,self.CurrentFloor.Width-1)
+		self.Player.Y = random.randint(0,self.CurrentFloor.Height-1)
 		self.NPEs = [Entity(None, random.randint(0,60), random.randint(0, 40), "d")]
 		self.AQAnswerResult = None
 		self.Messages = []
 		self.TurnCounter = 0
+		
+		
 	
 	def PlayerMove(self, direction):
 		oldxy = (self.Player.X, self.Player.Y)
@@ -181,10 +186,14 @@ class IOController:
 		if self.HandleKeys(state, libtcod.console_check_for_keypress().vk):
 			state.TurnCounter += 1
 			state.MoveNPEs()
+		self.UpdateDungeon(state)
 		self.UpdateStatusWindow(state)
 		self.UpdateMessageLog(state)
 		self.RefreshWindow(state)
 	
+	def UpdateDungeon(self, state):
+		pass
+				
 	def UpdateStatusWindow(self, state):
 		libtcod.console_print_frame(self.statuswindow, 0, 0, self.STATUS_WIDTH, self.STATUS_HEIGHT)
 		libtcod.console_print(self.statuswindow, 1, 0, "STATUS")
@@ -233,6 +242,18 @@ class Entity:
 		if (self.Y > entity.Y) and (self.Y - distance != entity.Y): self.Y -= distance
 		elif (self.Y < entity.Y) and (self.Y + distance != entity.Y): self.Y += distance
 
+class DungeonFloor:
+	def __init__(self):
+		self.Width = 100
+		self.Height = 100
+		self.Map = [[self.WallOrNot() for x in range(self.Width)] for y in range(self.Height)]
+				
+				
+	def WallOrNot(self):
+		if random.randint(0,1):
+			return "#"
+		else:
+			return " "
 		
 if __name__ == "__main__":
 	anki_quester()
