@@ -33,14 +33,16 @@ def anki_quester():
 	
 	#Set up our game objects
 	AQGameInstance = AnkiQuester()
-	AQIOController = IOController()
+	AQIOController = IOController(AQGameInstance)
 	
 	#hook the review process to construct our game loop
 	if not AQ_DEBUG:
 		mw.reviewer._answerCard = catch_answer
 	
+	AQGameInstance.CurrentFloor
+	
 	while not libtcod.console_is_window_closed(): 
-		AQIOController.Update(AQGameInstance)
+		AQIOController.Update()
 
 def catch_answer(ease):
 	if mw.reviewer.state == "answer":
@@ -58,13 +60,12 @@ class AnkiQuester:
 	def __init__(self):
 		self.CurrentFloor = DungeonFloor()
 		self.Player = Entity()
-		self.Player.X = random.randint(0,self.CurrentFloor.Width-1)
-		self.Player.Y = random.randint(0,self.CurrentFloor.Height-1)
+		self.Player.X = 0
+		self.Player.Y = 0
 		self.NPEs = [Entity(None, random.randint(0,60), random.randint(0, 40), "d")]
 		self.AQAnswerResult = None
 		self.Messages = []
 		self.TurnCounter = 0
-		
 		
 	
 	def PlayerMove(self, direction):
@@ -124,7 +125,9 @@ class AnkiQuester:
 			return self.AQAnswerResult
 	
 class IOController:
-	def __init__(self):
+	def __init__(self, state):
+		self.GameState = state
+		
 		#Set up libtcod
 		self.SCREEN_WIDTH = 80
 		self.SCREEN_HEIGHT = 50
@@ -142,7 +145,8 @@ class IOController:
 		
 		self.messagelog = libtcod.console_new(self.MSG_WIDTH, self.MSG_HEIGHT)
 		self.statuswindow = libtcod.console_new(self.STATUS_WIDTH, self.STATUS_HEIGHT)
-		self.dungeon = libtcod.console_new(self.DUNGEON_WIDTH, self.DUNGEON_HEIGHT)
+		self.dungeon = self.InitDungeon(self.GameState.CurrentFloor.Map)
+		self.blank = libtcod.console_new(self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
 
 	
 	def FocusGame(self):
@@ -151,14 +155,14 @@ class IOController:
 	def FocusAnki(self):
 		mw.setFocus()
 	
-	def HandleKeys(self, state, key):
+	def HandleKeys(self, key):
 		if key == libtcod.KEY_NONE:
 			return False
-		elif key == libtcod.KEY_UP: state.PlayerMove("Up")
-		elif key == libtcod.KEY_DOWN: state.PlayerMove("Down")
-		elif key == libtcod.KEY_LEFT: state.PlayerMove("Left")
-		elif key == libtcod.KEY_RIGHT: state.PlayerMove("Right")
-		elif (key == libtcod.KEY_SPACE) or (key == libtcod.KEY_CHAR): state.PlayerMove("Rest")
+		elif key == libtcod.KEY_UP: self.GameState.PlayerMove("Up")
+		elif key == libtcod.KEY_DOWN: self.GameState.PlayerMove("Down")
+		elif key == libtcod.KEY_LEFT: self.GameState.PlayerMove("Left")
+		elif key == libtcod.KEY_RIGHT: self.GameState.PlayerMove("Right")
+		elif (key == libtcod.KEY_SPACE) or (key == libtcod.KEY_CHAR): self.GameState.PlayerMove("Rest")
 		elif (key == libtcod.KEY_ESCAPE) and AQ_DEBUG: sys.exit()
 		elif (key == libtcod.KEY_F2) and AQ_DEBUG: pdb.set_trace()
 		else:
@@ -172,55 +176,66 @@ class IOController:
 	
 	def EraseEntities(self, entities):
 		for entity in entities:
-			libtcod.console_put_char(self.dungeon, entity.X, entity.Y, " ", libtcod.BKGND_NONE)
+			libtcod.console_put_char(self.dungeon, entity.X, entity.Y, self.GameState.CurrentFloor.Map[entity.Y][entity.X], libtcod.BKGND_NONE)
 	
-	def RefreshWindow(self, state):
-		self.DrawEntities(state.Entities())
-		libtcod.console_blit(self.dungeon, 0, 0, self.DUNGEON_WIDTH, self.DUNGEON_HEIGHT, 0, 0, 0)
+	def RefreshWindow(self):
+		self.DrawEntities(self.GameState.Entities())
+		libtcod.console_blit(self.blank, 0, 0, self.SCREEN_WIDTH, self.SCREEN_HEIGHT, 0, 0, 0)
+		libtcod.console_blit(self.dungeon, self.GameState.Player.X-(self.DUNGEON_WIDTH/2), self.GameState.Player.Y-(self.DUNGEON_HEIGHT/2), self.DUNGEON_WIDTH, self.DUNGEON_HEIGHT, 0, 0, 0)
 		libtcod.console_blit(self.messagelog, 0, 0, self.MSG_WIDTH, self.MSG_HEIGHT, 0, 0, self.DUNGEON_HEIGHT)
 		libtcod.console_blit(self.statuswindow, 0, 0, self.STATUS_WIDTH, self.STATUS_HEIGHT, 0, self.DUNGEON_WIDTH, 0)
 		libtcod.console_flush()
-		self.EraseEntities(state.Entities())
+		self.EraseEntities(self.GameState.Entities())
 	
-	def Update(self, state):
-		if self.HandleKeys(state, libtcod.console_check_for_keypress().vk):
-			state.TurnCounter += 1
-			state.MoveNPEs()
-		self.UpdateDungeon(state)
-		self.UpdateStatusWindow(state)
-		self.UpdateMessageLog(state)
-		self.RefreshWindow(state)
+	def Update(self):
+		if self.HandleKeys(libtcod.console_check_for_keypress().vk):
+			self.GameState.TurnCounter += 1
+			self.GameState.MoveNPEs()
+		self.UpdateDungeon()
+		self.UpdateStatusWindow()
+		self.UpdateMessageLog()
+		self.RefreshWindow()
 	
-	def UpdateDungeon(self, state):
-		pass
+	def InitDungeon(self, floor):
+		height = len(floor)
+		width = len(floor[0])
+		consolizedfloor = libtcod.console_new(height, width)
+		for y in range(height):
+			for x in range(width):
+				libtcod.console_put_char(consolizedfloor, x, y, floor[y][x], libtcod.BKGND_NONE)
+		return consolizedfloor
+		
+	def UpdateDungeon(self):
+		self.GameState.Player.X
+		
 				
-	def UpdateStatusWindow(self, state):
+	def UpdateStatusWindow(self):
 		libtcod.console_print_frame(self.statuswindow, 0, 0, self.STATUS_WIDTH, self.STATUS_HEIGHT)
 		libtcod.console_print(self.statuswindow, 1, 0, "STATUS")
 		currentline = 1
-		for stat in state.Player.DisplayedStats:
-			if stat != "": libtcod.console_print(self.statuswindow, 1, currentline, "{0}: {1}".format(stat, state.Player.Stats[stat]) )
+		for stat in self.GameState.Player.DisplayedStats:
+			if stat != "": libtcod.console_print(self.statuswindow, 1, currentline, "{0}: {1}".format(stat, self.GameState.Player.Stats[stat]) )
 			currentline += 1
-		libtcod.console_print(self.statuswindow, 1, currentline+2, "Turn: {0}".format(state.TurnCounter))
+		libtcod.console_print(self.statuswindow, 1, currentline+2, "Turn: {0}".format(self.GameState.TurnCounter))
 		if AQ_DEBUG:
 			libtcod.console_print(self.statuswindow, 1, currentline+3, "FPS: {0}".format(libtcod.sys_get_fps()))
 	
-	def UpdateMessageLog(self, state):
+	def UpdateMessageLog(self):
 		libtcod.console_print_frame(self.messagelog, 0, 0, self.MSG_WIDTH, self.MSG_HEIGHT)
 		libtcod.console_print(self.messagelog, 1, 0, "MESSAGES")
 		currentline = 1
-		for message in state.Messages[(-1)*(self.MSG_HEIGHT-2):]:
+		for message in self.GameState.Messages[(-1)*(self.MSG_HEIGHT-2):]:
 			libtcod.console_print(self.messagelog, 1, currentline, message)
 			currentline += 1
 	
-	def Pause(self, state):
+	def Pause(self):
 		libtcod.console_check_for_keypress()
-		self.RefreshWindow(state)
+		self.RefreshWindow()
 	
-	def PauseForReview(self, state):
+	def PauseForReview(self):
 		#libtcod.console_print(self.con, 0, 49, "Paused for Card Answer")
 		libtcod.console_check_for_keypress()
-		self.RefreshWindow(state)
+		self.RefreshWindow()
 		#libtcod.console_print(self.con, 0, 49, "                      ")
 			
 class Entity:
@@ -250,10 +265,10 @@ class DungeonFloor:
 				
 				
 	def WallOrNot(self):
-		if random.randint(0,1):
-			return "#"
-		else:
-			return " "
+		x = random.randint(0,2)
+		if x == 0: return "."
+		elif x == 1: return ","
+		elif x == 2: return " "
 		
 if __name__ == "__main__":
 	anki_quester()
