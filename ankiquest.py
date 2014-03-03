@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, sys, random, pdb
+import os, sys, random
 from math import ceil
 
 #Check to see if we're running inside Anki, and load appropriate Anki libraries
@@ -89,9 +89,12 @@ class AnkiQuester:
 					self.NPEs.remove(collisionentity)
 					self.NPEs.append(Entity(None, random.randint(0,60), random.randint(0, 40), "d"))
 					self.GiveXP(self.Player, collisionentity.Stats["HP"])
+			else:
+				self.Messages.append("Hit a wall!")
 					
 		
 	def CollisionCheck(self, x, y):
+		if self.CurrentFloor.Map[y][x].Barrier: return True
 		#check for collision on an existing entity, this is inefficient, but I don't care right now
 		for entity in self.NPEs:
 			if (entity.X == x) and (entity.Y == y): return entity
@@ -109,7 +112,12 @@ class AnkiQuester:
 	
 	def MoveNPEs(self):
 		for entity in self.NPEs:
+			oldx = entity.X
+			oldy = entity.Y
 			entity.MoveCloserTo(self.Player)
+			if self.CollisionCheck(entity.X, entity.Y) == True:
+				entity.X = oldx
+				entity.Y = oldy
 	
 	def DoFlashcard(self):
 		if AQ_DEBUG:
@@ -172,11 +180,11 @@ class IOController:
 	
 	def DrawEntities(self, entities):
 		for entity in entities:
-			libtcod.console_put_char(self.dungeon, entity.X, entity.Y, entity.Tile, libtcod.BKGND_NONE)
+			libtcod.console_put_char(self.dungeon, entity.X, entity.Y, entity.Glyph, libtcod.BKGND_NONE)
 	
 	def EraseEntities(self, entities):
 		for entity in entities:
-			libtcod.console_put_char(self.dungeon, entity.X, entity.Y, self.GameState.CurrentFloor.Map[entity.Y][entity.X], libtcod.BKGND_NONE)
+			libtcod.console_put_char(self.dungeon, entity.X, entity.Y, self.GameState.CurrentFloor.Map[entity.Y][entity.X].Glyph, libtcod.BKGND_NONE)
 	
 	def RefreshWindow(self):
 		self.DrawEntities(self.GameState.Entities())
@@ -202,7 +210,7 @@ class IOController:
 		consolizedfloor = libtcod.console_new(height, width)
 		for y in range(height):
 			for x in range(width):
-				libtcod.console_put_char(consolizedfloor, x, y, floor[y][x], libtcod.BKGND_NONE)
+				libtcod.console_put_char(consolizedfloor, x, y, floor[y][x].Glyph, libtcod.BKGND_NONE)
 		return consolizedfloor
 		
 	def UpdateDungeon(self):
@@ -247,11 +255,12 @@ class Entity:
 		self.DisplayedStats = ["HP", "Strength", "Speed", "", "Level", "XP"]
 		self.X = xpos
 		self.Y = ypos
-		self.Tile = tile
+		self.Glyph = tile
+		self.VisionRadius = 3
 	
 	def MoveCloserTo(self, entity):
 		#Base speed of 100 = 1 turn/second
-		distance = random.randint(0, int(ceil(self.Stats["Speed"]/100)))
+		distance = 1
 		if (self.X > entity.X) and (self.X - distance != entity.X): self.X -= distance
 		elif (self.X < entity.X) and (self.X + distance != entity.X): self.X += distance
 		if (self.Y > entity.Y) and (self.Y - distance != entity.Y): self.Y -= distance
@@ -265,10 +274,23 @@ class DungeonFloor:
 				
 				
 	def WallOrNot(self):
-		x = random.randint(0,2)
-		if x == 0: return "."
-		elif x == 1: return ","
-		elif x == 2: return " "
+		x = random.randint(0,3)
+		if x == 0: return Tile(" ")
+		elif x == 1: return Tile(" ")
+		elif x == 2: return Tile(" ")
+		elif x == 3: return Tile("0", True, True)
+		
+
+class Tile:
+	def __init__(self, glyph = " ", barrier = False, opaque = False):
+		self.Glyph = glyph
+		self.Barrier = barrier
+		self.Opaque = opaque
+		self.Seen = False
+	
+	def __str__(self):
+		return self.Glyph
+	
 		
 if __name__ == "__main__":
 	anki_quester()
