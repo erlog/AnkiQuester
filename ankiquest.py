@@ -268,8 +268,8 @@ class Entity:
 
 class DungeonFloor:
 	def __init__(self):
-		self.Width = 100
-		self.Height = 100
+		self.Width = 50
+		self.Height = 50
 		self.Map = [[self.WallOrNot() for x in range(self.Width)] for y in range(self.Height)]
 				
 				
