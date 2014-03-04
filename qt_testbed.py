@@ -24,6 +24,7 @@ class Example(QtGui.QWidget):
 		
 		self.AQState = AnkiQuester()
 		self.font = QtGui.QFont("Inconsolata", 12)
+		self.font.setStyleHint(QtGui.QFont.TypeWriter)
 		self.font.setLetterSpacing(1, 2)
 		self.fontoptions = QtGui.QTextOption()
 		self.fontoptions.setAlignment(QtCore.Qt.AlignAbsolute)
