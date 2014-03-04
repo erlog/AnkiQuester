@@ -41,28 +41,52 @@ class AnkiQuester:
 		self.PlayerX = 0
 		self.PlayerY = 0
 		self.AQAnswerResult = None
-		self.Messages = ["Message1", "Message2", "Message3", "Message4", "Message5", "Message6", "Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7Message7"]
+		self.Messages = []
 		self.TurnCounter = 0
+		self.SpawnEnemy()
+		self.SpawnEnemy()
+		self.SpawnEnemy()
+		self.SpawnEnemy()
+		self.SpawnEnemy()
 		self.SpawnEnemy()
 		self.CurrentFloor.PutEntity(self.Player, self.PlayerX, self.PlayerY)
 	
 	def PlayerMove(self, direction):
-		self.CurrentFloor.RemoveEntity(self.PlayerX, self.PlayerY)
+		oldxy = (self.PlayerX, self.PlayerY)		
 		if direction == "Up": self.PlayerY -= 1
 		elif direction == "Down": self.PlayerY += 1
 		elif direction == "Left": self.PlayerX -= 1
 		elif direction == "Right": self.PlayerX += 1
 		elif direction == "Rest": pass
-		self.CurrentFloor.PutEntity(self.Player, self.PlayerX, self.PlayerY)
+		
+		collisioncheck = self.CollisionCheck(self.PlayerX, self.PlayerY)
+		
+		if collisioncheck == False:
+			self.CurrentFloor.RemoveEntity(oldxy[0], oldxy[1])
+			self.CurrentFloor.PutEntity(self.Player, self.PlayerX, self.PlayerY)
+		elif collisioncheck != True:
+			self.CurrentFloor.RemoveEntity(self.PlayerX, self.PlayerY)
+			self.Messages.append("Vanquished!")
+			self.GiveXP(self.Player, collisioncheck.Stats["HP"])
+			self.PlayerX = oldxy[0]
+			self.PlayerY = oldxy[1]
+			self.SpawnEnemy()
+		else:
+			self.PlayerX = oldxy[0]
+			self.PlayerY = oldxy[1]
+		
+			
 	
 	def MessageWindow(self, lines):
+		lines = lines-1
+		label = "MESSAGES:"
 		if len(self.Messages) <= lines: 
-			return os.linesep.join(self.Messages)
+			return os.linesep.join([label] + self.Messages)
 		else:
-			return os.linesep.join(self.Messages[-1*lines:])
+			return os.linesep.join([label] + self.Messages[-1*lines:])
 	
 	def StatusWindow(self):
-		statuswindowstring = ""
+		statuswindowstring = "STATUS:"+os.linesep
 		for key in self.Player.DisplayedStats:
 			if key in self.Player.Stats:
 				statuswindowstring += "{0}: {1}{2}".format(key, self.Player.Stats[key], os.linesep)
@@ -71,7 +95,12 @@ class AnkiQuester:
 		return statuswindowstring
 			
 	def CollisionCheck(self, x, y):
-		return False
+		if self.CurrentFloor.GetTile(x, y).Barrier:
+			return True
+		elif self.CurrentFloor.GetEntity(x, y) != " ":
+			return self.CurrentFloor.GetEntity(x, y)
+		else:
+			return False
 	
 	def GiveXP(self, entity, xp):
 		entity.Stats["XP"] += xp
@@ -115,6 +144,9 @@ class DungeonFloor:
 	
 	def RandomTile(self):
 		return random.randint(0, self.Width-1), random.randint(0, self.Height-1)
+	
+	def GetEntity(self, x, y):
+		return self.Entities[y][x]
 	
 	def GetTile(self, x, y):
 		return self.Map[y][x]

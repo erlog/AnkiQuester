@@ -13,22 +13,23 @@ class Example(QtGui.QWidget):
 		self.initUI()
 
 	def initUI(self):	 
-		self.ScreenWidth = 100
-		self.ScreenHeight = 50
+		self.ScreenWidth = 80
+		self.ScreenHeight = 40
 		self.StatusWidth = 15
 		self.StatusHeight = self.ScreenHeight
 		self.MsgWidth = self.ScreenWidth - self.StatusWidth
-		self.MsgHeight = 5
+		self.MsgHeight = 6
 		self.DungeonWidth = self.ScreenWidth - self.StatusWidth
 		self.DungeonHeight = self.ScreenHeight - self.MsgHeight
 		
 		self.AQState = AnkiQuester()
-		self.font = QtGui.QFont("Inconsolata", 10)
+		self.font = QtGui.QFont("Inconsolata", 12)
+		self.font.setLetterSpacing(1, 2)
 		self.fontoptions = QtGui.QTextOption()
 		self.fontoptions.setAlignment(QtCore.Qt.AlignAbsolute)
 		self.lineheight = QtGui.QFontMetrics(self.font).height()
-		self.charwidth = QtGui.QFontMetrics(self.font).averageCharWidth()
-		self.setGeometry(30, 30, (self.ScreenWidth-1)*self.charwidth, (self.ScreenHeight-1)*self.lineheight)
+		self.charwidth = QtGui.QFontMetrics(self.font).averageCharWidth() + self.font.letterSpacing()
+		self.setGeometry(30, 30, (self.ScreenWidth)*self.charwidth, (self.ScreenHeight)*self.lineheight)
 		self.setWindowTitle('AnkiQuest')
 		self.setStyleSheet("background-color: black")
 		self.show()
@@ -48,7 +49,7 @@ class Example(QtGui.QWidget):
 		right = self.AQState.PlayerX+(self.DungeonWidth/2)
 		self.text = self.AQState.CurrentFloor.RenderFloor(top, bottom, left, right)
 		qp.drawText(QtCore.QRectF(event.rect()), self.text, self.fontoptions)
-		qp.drawText(QtCore.QRectF(0, (self.DungeonHeight-1)*self.lineheight, self.ScreenWidth*self.charwidth, self.MsgHeight*self.lineheight), self.AQState.MessageWindow(self.MsgHeight), self.fontoptions)	
+		qp.drawText(QtCore.QRectF(2, self.DungeonHeight*self.lineheight, self.ScreenWidth*self.charwidth, self.MsgHeight*self.lineheight), self.AQState.MessageWindow(self.MsgHeight), self.fontoptions)	
 		qp.drawText(QtCore.QRectF((self.DungeonWidth-1)*self.charwidth, 0, self.StatusWidth*self.charwidth, self.ScreenHeight*self.lineheight), self.AQState.StatusWindow(), self.fontoptions)
 	
 	def keyPressEvent(self, event):
