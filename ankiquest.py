@@ -137,7 +137,7 @@ class DungeonFloor:
 	
 	def CollisionCheck(self, x, y):
 		#Simple bounds check on the values
-		if (x < 0) or (y < 0) or (x > self.ScreenWidth-1) or (y > self.ScreenHeight-1):
+		if (x < 0) or (y < 0) or (x > self.Width-1) or (y > self.Height-1):
 			return True
 			
 		#Return False if nothing, True if something static, and the list of Entities on the Tile if something interactive.
