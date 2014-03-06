@@ -1,35 +1,24 @@
 import sys
 sys.path.append("/usr/local/lib/python2.7/site-packages")
 from PyQt4 import QtGui, QtCore
-from time import time
 from ankiquest import *
-import pdb
 
 class Example(QtGui.QWidget):
 
 	def __init__(self):
 		super(Example, self).__init__()
-
 		self.initUI()
 
 	def initUI(self):	 
-		self.ScreenWidth = 80
-		self.ScreenHeight = 40
-		self.StatusWidth = 15
-		self.StatusHeight = self.ScreenHeight
-		self.MsgWidth = self.ScreenWidth - self.StatusWidth
-		self.MsgHeight = 6
-		self.DungeonWidth = self.ScreenWidth - self.StatusWidth
-		self.DungeonHeight = self.ScreenHeight - self.MsgHeight
-		
 		self.AQState = AnkiQuester()
+		self.AQUI = UserInterface(self.AQState)
 		self.font = QtGui.QFont("Inconsolata", 12)
 		self.font.setLetterSpacing(1, 2)
 		self.fontoptions = QtGui.QTextOption()
 		self.fontoptions.setAlignment(QtCore.Qt.AlignAbsolute)
 		self.lineheight = QtGui.QFontMetrics(self.font).height()
 		self.charwidth = QtGui.QFontMetrics(self.font).averageCharWidth() + self.font.letterSpacing()
-		self.setGeometry(30, 30, (self.ScreenWidth)*self.charwidth, (self.ScreenHeight)*self.lineheight)
+		self.setGeometry(30, 30, self.charwidth*self.AQUI.ScreenWidth, self.lineheight*self.AQUI.ScreenHeight)
 		self.setWindowTitle('AnkiQuest')
 		self.setStyleSheet("background-color: black")
 		self.show()
@@ -39,23 +28,14 @@ class Example(QtGui.QWidget):
 		qp.begin(self)
 		qp.setFont(self.font)
 		qp.setPen(QtGui.QColor("White"))
-		self.drawText(event, qp)
-		qp.end()
-
-	def drawText(self, event, qp):
-		top = self.AQState.PlayerY-(self.DungeonHeight/2)
-		bottom = self.AQState.PlayerY+(self.DungeonHeight/2)
-		left = self.AQState.PlayerX-(self.DungeonWidth/2)
-		right = self.AQState.PlayerX+(self.DungeonWidth/2)
-		self.text = self.AQState.CurrentFloor.RenderFloor(top, bottom, left, right)
+		self.text = self.AQUI.RenderScreen()
 		qp.drawText(QtCore.QRectF(event.rect()), self.text, self.fontoptions)
-		qp.drawText(QtCore.QRectF(2, self.DungeonHeight*self.lineheight, self.ScreenWidth*self.charwidth, self.MsgHeight*self.lineheight), self.AQState.MessageWindow(self.MsgHeight), self.fontoptions)	
-		qp.drawText(QtCore.QRectF((self.DungeonWidth-1)*self.charwidth, 0, self.StatusWidth*self.charwidth, self.ScreenHeight*self.lineheight), self.AQState.StatusWindow(), self.fontoptions)
+		qp.end()
+		
 	
 	def keyPressEvent(self, event):
 		if event.key() == QtCore.Qt.Key_F2:
-			QtCore.pyqtRemoveInputHook()
-			pdb.set_trace()
+			qt_trace()
 		elif event.key() == QtCore.Qt.Key_Up: self.AQState.PlayerMove("Up")
 		elif event.key() == QtCore.Qt.Key_Down: self.AQState.PlayerMove("Down")
 		elif event.key() == QtCore.Qt.Key_Left: self.AQState.PlayerMove("Left")
