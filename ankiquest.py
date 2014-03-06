@@ -78,11 +78,7 @@ class UserInterface:
 		self.GameState = state
 	
 	def RenderScreen(self):
-		dungeonlines = self.GameState.CurrentFloor.RenderFloor((self.GameState.PlayerY - self.DungeonHeight/2), 
-														(self.GameState.PlayerY + self.DungeonHeight/2),
-														(self.GameState.PlayerX - self.DungeonWidth/2),
-														(self.GameState.PlayerX + self.DungeonWidth/2))
-
+		dungeonlines = self.DungeonWindow()
 		statuslines = self.StatusWindowItems()
 		
 		for index in range(len(statuslines)):
@@ -91,6 +87,18 @@ class UserInterface:
 		messagelines = self.MessageWindow(self.MsgHeight)
 		
 		return linesep.join(dungeonlines + messagelines)
+	
+	def DungeonWindow(self):
+		dungeontiles = self.GameState.CurrentFloor.PaddedSlice((self.GameState.PlayerY - self.DungeonHeight/2), 
+														(self.GameState.PlayerY + self.DungeonHeight/2),
+														(self.GameState.PlayerX - self.DungeonWidth/2),
+														(self.GameState.PlayerX + self.DungeonWidth/2))
+		
+		lines = []
+		for row in dungeontiles:
+			lines.append("".join([str(tile) for tile in row]))
+			
+		return lines
 	
 	def MessageWindow(self, linecount):
 		linecount -= 1
@@ -102,7 +110,9 @@ class UserInterface:
 	
 	def StatusWindowItems(self):
 		items = ["STATUS:"]
-		for key in self.GameState.Player.DisplayedStats:
+		displayedstats = ["HP", "Strength", "Speed", "", "Level", "XP"]
+		
+		for key in displayedstats:
 			if key in self.GameState.Player.Stats:
 				items.append(" {0}: {1}".format(key, self.GameState.Player.Stats[key]))
 			else:
@@ -126,6 +136,11 @@ class DungeonFloor:
 		elif x == 3: return Tile("O", True, True)
 	
 	def CollisionCheck(self, x, y):
+		#Simple bounds check on the values
+		if (x < 0) or (y < 0) or (x > self.ScreenWidth-1) or (y > self.ScreenHeight-1):
+			return True
+			
+		#Return False if nothing, True if something static, and the list of Entities on the Tile if something interactive.
 		tile = self.GetTile(x, y)
 		if tile.Entities: 
 			return tile.Entities
@@ -175,7 +190,8 @@ class DungeonFloor:
 		
 		return paddedrows
 	
-	def RenderFloor(self, top, bottom, left, right):
+	#This function is hard-coded for console mode at this time
+	def PaddedSlice(self, top, bottom, left, right):
 		toppadding = 0
 		bottompadding = 0
 		leftpadding = 0
@@ -187,15 +203,8 @@ class DungeonFloor:
 		if right > self.Width: rightpadding = abs(right - self.Width)
 		
 		slicedmap = self.Slice2DArray(top, bottom, left, right, self.Map)
-		padded = self.Pad2DArray(toppadding, bottompadding, leftpadding, rightpadding, slicedmap, " ")
 
-		return self.RenderLayer(padded)
-		
-	def RenderLayer(self, layer):
-		lines = []
-		for row in layer:
-			lines.append("".join([str(tile) for tile in row]))
-		return lines
+		return self.Pad2DArray(toppadding, bottompadding, leftpadding, rightpadding, slicedmap, Tile(" "))
 
 class Tile:
 	def __init__(self, glyph = " ", barrier = False, opaque = False):
@@ -217,7 +226,7 @@ class Entity:
 			self.Stats = {"HP": 10, "Strength": 10, "Speed": 100, "Luck": 10, "XP": 0, "Level": 1}
 		else:
 			self.Stats = initstats
-		self.DisplayedStats = ["HP", "Strength", "Speed", "", "Level", "XP"]
+
 		self.Glyph = tile
 		self.VisionRadius = 3
 	
