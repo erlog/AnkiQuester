@@ -1,2 +1,2 @@
 # -*- coding: utf-8 -*-
-import ankiquester.ankiquest
+from ankiquester.qt_interface import *

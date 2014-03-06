@@ -1,43 +1,8 @@
 # -*- coding: utf-8 -*-
-
-import os, sys, random, pdb
+from random import randint
+from os import linesep
 from math import ceil
-from PyQt4 import QtGui, QtCore
 
-
-#Check to see if we're running inside Anki, and load appropriate Anki libraries
-try:
-	from aqt import mw
-	from aqt.utils import showInfo
-	from aqt.qt import *
-	from aqt import forms
-	from anki.hooks import wrap
-	AQ_PATH = os.path.normpath(os.path.join(mw.pm.addonFolder().encode(sys.getfilesystemencoding()), "ankiquester/"))
-	AQ_DEBUG = False
-except ImportError:
-	AQ_DEBUG = True
-	AQ_PATH = os.path.abspath(os.curdir)
-
-	def qt_trace(self=None):
-		QtCore.pyqtRemoveInputHook()
-		pdb.set_trace()
-		
-def anki_quester():
-	pass
-
-def catch_answer(ease):
-	if mw.reviewer.state == "answer":
-		AQGameInstance.AQAnswerResult = ease
-	OLD_answerCard(ease)
-
-if not AQ_DEBUG:
-	#If we're in Anki then we add the AQ menu item and clone _answerCard for later
-	action = QAction("AnkiQuest", mw)
-	mw.connect(action, SIGNAL("triggered()"), anki_quester)
-	mw.form.menuTools.addAction(action)
-	OLD_answerCard = mw.reviewer._answerCard
-	
-	
 class AnkiQuester:
 	def __init__(self):
 		self.CurrentFloor = DungeonFloor()
@@ -79,8 +44,8 @@ class AnkiQuester:
 		position = self.CurrentFloor.RandomTile()
 		self.CurrentFloor.PutEntity(Entity(None, "d"), position[0], position[1])
 	
-	def DoFlashcard(self):
-		if AQ_DEBUG:
+	def DoFlashcard(self, debug):
+		if debug:
 			return 2
 		else:
 			self.AQAnswerResult = None
@@ -125,7 +90,7 @@ class UserInterface:
 			
 		messagelines = self.MessageWindow(self.MsgHeight)
 		
-		return os.linesep.join(dungeonlines + messagelines)
+		return linesep.join(dungeonlines + messagelines)
 	
 	def MessageWindow(self, linecount):
 		linecount -= 1
@@ -154,7 +119,7 @@ class DungeonFloor:
 		self.Map = [[self.WallOrNot() for x in range(self.Width)] for y in range(self.Height)]
 				
 	def WallOrNot(self):
-		x = random.randint(0,3)
+		x = randint(0,3)
 		if x == 0: return Tile(" ")
 		elif x == 1: return Tile(" ")
 		elif x == 2: return Tile(" ")
@@ -170,7 +135,7 @@ class DungeonFloor:
 			return False
 	
 	def RandomTile(self):
-		return random.randint(0, self.Width-1), random.randint(0, self.Height-1)
+		return randint(0, self.Width-1), randint(0, self.Height-1)
 	
 	def GetTile(self, x, y):
 		return self.Map[y][x]
