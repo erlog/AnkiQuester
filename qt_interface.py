@@ -1,5 +1,8 @@
 from ankiquest import *
 
+#We need to check if we're running in Anki so we can import the right libraries.
+#Any instance outside of Anki is considered Debug at the moment, but could change in the future.
+#To-do: separate Anki-less from Debug
 try:
 	from aqt.qt import *
 	from aqt import mw
@@ -12,7 +15,8 @@ except ImportError:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
 	
-#If we're in Anki then we add the AQ menu item and clone _answerCard for later
+#If we're in Anki then we add the AQ menu item and clone _answerCard for our flashcard hook to use later
+#This should probably be split out to it's own file later.
 if not AQ_DEBUG:
 	def AQ_Start():
 		mw.AQ_AnkiWindow = AQ_Anki_Window = AQ_QT_Interface()
@@ -34,17 +38,22 @@ class AQ_QT_Interface(QDialog):
 
 	def initUI(self):	 
 		self.AQState = AnkiQuester()
-		self.AQUI = UserInterface(self.AQState)
+		self.AQUI = ConsoleUserInterface(self.AQState)
+		
 		self.font = QFont("Inconsolata", 12)
 		self.font.setLetterSpacing(1, 2)
 		self.fontoptions = QTextOption()
 		self.font.setStyleHint(QFont.TypeWriter)
 		self.fontoptions.setAlignment(Qt.AlignAbsolute)
+		self.setWindowTitle('AnkiQuest')
+		self.setStyleSheet("background-color: black")
+		
+		#This is a kludge right now until I bother to learn more about Qt
+		#To-do: Cut the unreliable lineheight/charwidth metrics out of the equation by using a proper Qt widget implementation
 		self.lineheight = QFontMetrics(self.font).height()
 		self.charwidth = QFontMetrics(self.font).averageCharWidth() + self.font.letterSpacing()
 		self.setGeometry(30, 30, self.charwidth*self.AQUI.ScreenWidth, self.lineheight*self.AQUI.ScreenHeight)
-		self.setWindowTitle('AnkiQuest')
-		self.setStyleSheet("background-color: black")
+		
 		self.show()
 	
 	def paintEvent(self, event):
@@ -53,12 +62,14 @@ class AQ_QT_Interface(QDialog):
 		qp.setFont(self.font)
 		qp.setPen(QColor("White"))
 		self.text = self.AQUI.RenderScreen()
-		qp.drawText(QRectF(event.rect()), self.text, self.fontoptions)
+		qp.drawText(QRectF(self.rect()), self.text, self.fontoptions)
 		qp.end()
 		
 	def keyPressEvent(self, event):
+		#We should be doing passthrough to our ConsoleUserInterface if we're going to lean on it this heavily
+		#To-do: Remove this Qt input crutch and write a proper console input controller or a real Qt interface
 		if event.key() == Qt.Key_F2:
-			qt_trace()
+			if AQ_DEBUG: qt_trace(self.AQUI)
 		elif event.key() == Qt.Key_Up: self.AQState.PlayerMove("Up")
 		elif event.key() == Qt.Key_Down: self.AQState.PlayerMove("Down")
 		elif event.key() == Qt.Key_Left: self.AQState.PlayerMove("Left")
