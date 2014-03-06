@@ -38,6 +38,7 @@ class AQ_QT_Interface(QDialog):
 		self.font = QFont("Inconsolata", 12)
 		self.font.setLetterSpacing(1, 2)
 		self.fontoptions = QTextOption()
+		self.font.setStyleHint(QFont.TypeWriter)
 		self.fontoptions.setAlignment(Qt.AlignAbsolute)
 		self.lineheight = QFontMetrics(self.font).height()
 		self.charwidth = QFontMetrics(self.font).averageCharWidth() + self.font.letterSpacing()
