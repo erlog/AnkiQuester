@@ -175,6 +175,66 @@ class DungeonFloor:
 		#Except for the player, I don't want entities in the dungeon to ever be thinking in terms of their X/Y position.
 		#This may need to be refactored later because it could be, like, the worst idea.
 		self.Entities = []
+	
+		self.FOVMult = [
+					[1,  0,  0, -1, -1,  0,  0,  1],
+					[0,  1, -1,  0,  0, -1,  1,  0],
+					[0,  1,  1,  0,  0, -1, -1,  0],
+					[1,  0,  0,  1, -1,  0,  0, -1]
+				]
+
+	def SetLit(self, x, y):
+		self.Map[y][x].Lit = True
+	
+	def ComputeFOV(self, x, y, radius):
+		#"Calculate lit squares from the given location and radius"
+		for oct in range(8):
+			self._Cast_Light(x, y, 1, 1.0, 0.0, radius,
+							 self.FOVMult[0][oct], self.FOVMult[1][oct],
+							 self.FOVMult[2][oct], self.FOVMult[3][oct], 0)
+
+			
+	def _Cast_Light(self, cx, cy, row, start, end, radius, xx, xy, yx, yy, id):
+		#"Recursive lightcasting function"
+		if start < end:
+			return
+		radius_squared = radius*radius
+		for j in range(row, radius+1):
+			dx, dy = -j-1, -j
+			blocked = False
+			while dx <= 0:
+				dx += 1
+				# Translate the dx, dy coordinates into map coordinates:
+				X, Y = cx + dx * xx + dy * xy, cy + dx * yx + dy * yy
+				# l_slope and r_slope store the slopes of the left and right
+				# extremities of the square we're considering:
+				l_slope, r_slope = (dx-0.5)/(dy+0.5), (dx+0.5)/(dy-0.5)
+				if start < r_slope:
+					continue
+				elif end > l_slope:
+					break
+				else:
+					# Our light beam is touching this square; light it:
+					if dx*dx + dy*dy < radius_squared:
+						self.set_lit(X, Y)
+					if blocked:
+						# we're scanning a row of blocked squares:
+						if self.blocked(X, Y):
+							new_start = r_slope
+							continue
+						else:
+							blocked = False
+							start = new_start
+					else:
+						if self.blocked(X, Y) and j < radius:
+							# This is a blocking square, start a child scan:
+							blocked = True
+							self._cast_light(cx, cy, j+1, start, l_slope,
+											 radius, xx, xy, yx, yy, id+1)
+							new_start = r_slope
+			# Row is scanned; do next row unless last square was blocked:
+			if blocked:
+				break
 				
 	def WallOrNot(self):
 		#To-do: write real dungeon generation code in place of this
@@ -274,6 +334,7 @@ class Tile:
 		self.Glyph = glyph
 		self.Barrier = barrier
 		self.Opaque = opaque
+		self.Lit = False
 		self.Seen = False
 		
 		#We may at some point in the future allow multiple entities to share a tile.
