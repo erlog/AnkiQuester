@@ -10,26 +10,23 @@ string = ""
 from aq_strings import *
 
 class AnkiQuester:
+	#The main loop and traffic cop for AQ. This class should be concerned only with keeping track
+	#	of game state and providing communication between various classes that make up AQ.
 	def __init__(self):
 		self.CurrentFloor = DungeonFloor()
-		
-		#To-do: Write a proper Player class instead of using a simple Entity
-		self.Player = Entity()
-		self.PlayerX = 0
-		self.PlayerY = 0
+		self.Player = Player()
 		
 		self.AQAnswerResult = None
 		self.Messages = []
 		self.TurnCounter = 0
 		
 		self.SpawnEnemy()
-		self.CurrentFloor.PutEntity(self.Player, self.PlayerX, self.PlayerY)
+		self.CurrentFloor.PutEntity(self.Player, self.Player.X, self.Player.Y)
 	
 	def PlayerMove(self, direction):
-		#Movement code is mostly fine here, but the collision code should be more pass through
-		#	style in order to allow collisions to resolve between entities.
-		newx = self.PlayerX
-		newy = self.PlayerY
+		#To-do: write a proper game rules class to handle the details of resolving collisions between entities.
+		newx = self.Player.X
+		newy = self.Player.Y
 		
 		if direction == "Up": newy -= 1
 		elif direction == "Down": newy += 1
@@ -40,10 +37,8 @@ class AnkiQuester:
 		collisioncheck = self.CurrentFloor.CollisionCheck(newx, newy)
 		
 		if collisioncheck == False:
-			self.CurrentFloor.RemoveEntity(self.Player, self.PlayerX, self.PlayerY)
-			self.PlayerX = newx
-			self.PlayerY = newy
-			self.CurrentFloor.PutEntity(self.Player, self.PlayerX, self.PlayerY)
+			self.CurrentFloor.MoveEntity(self.Player, self.Player.X, self.Player.Y, newx, newy)
+			self.Player.UpdatePosition(newx, newy)
 			self.NextTurn()
 	
 	def NextTurn(self):
@@ -57,9 +52,9 @@ class AnkiQuester:
 			self.Messages.append(self.Strings.LevelUpMessage.format(entity.Level))
 	
 	def SpawnEnemy(self):
-		#This is a convenience function mostly for testing
+		#This is a stub function that should eventually be deleted or handled by DungeonFloor.
 		position = self.CurrentFloor.RandomTile()
-		self.CurrentFloor.PutEntity(Entity("d"), position[0], position[1])
+		self.CurrentFloor.PutEntity(Monster(), position[0], position[1])
 	
 	def DoFlashcard(self, debug):
 		#This is our single handler for flashcard data. 
@@ -116,10 +111,10 @@ class ConsoleUserInterface:
 	def DungeonWindow(self):
 		#Right now our tile is deciding by itself what kind of representation to give us via logic in the str method.
 		#This could be made more extensible in a graphical version later, but is fine as it is for a console version.
-		dungeontiles = self.GameState.CurrentFloor.PaddedSlice((self.GameState.PlayerY - self.DungeonHeight/2), 
-														(self.GameState.PlayerY + self.DungeonHeight/2),
-														(self.GameState.PlayerX - self.DungeonWidth/2),
-														(self.GameState.PlayerX + self.DungeonWidth/2))
+		dungeontiles = self.GameState.CurrentFloor.PaddedSlice((self.GameState.Player.Y - self.DungeonHeight/2), 
+														(self.GameState.Player.Y + self.DungeonHeight/2),
+														(self.GameState.Player.X - self.DungeonWidth/2),
+														(self.GameState.Player.X + self.DungeonWidth/2))
 		
 		lines = []
 		for row in dungeontiles:
@@ -128,7 +123,8 @@ class ConsoleUserInterface:
 		return lines
 	
 	def MessageWindow(self, linecount):
-		#To-do: support for user-definable formatting of the MessageWindow
+		#To-do: support for user-definable formatting of the MessageWindow.
+		#	Ideally users should be able to filter kinds of messages they receive in a granular fashion to prevent spam.
 		linecount -= 1
 		label = self.Strings.MessageWindowLabel
 		if len(self.GameState.Messages) <= linecount: 
@@ -159,7 +155,7 @@ class ConsoleUserInterface:
 			if line:
 				items.append(" {0}: {1}".format(line[0], line[1]))
 			else:
-				items.append("".center(self.StatusWidth))
+				items.append("")
 		
 		return items
 	
@@ -167,12 +163,18 @@ class ConsoleUserInterface:
 
 
 class DungeonFloor:
+	#This class holds our information about the current floor including residents.
 	def __init__(self, width = 25, height = 25):
 		self.Width = width
 		self.Height = height
 		
 		#To-do: make this extensible via inheritance to be able to generate different kinds of dungeon floors
 		self.Map = [[self.WallOrNot() for x in range(self.Width)] for y in range(self.Height)]
+		
+		#We maintain a level-wide list of entities as well as a list of Entities on each tile.
+		#Except for the player, I don't want entities in the dungeon to ever be thinking in terms of their X/Y position.
+		#This may need to be refactored later because it could be, like, the worst idea.
+		self.Entities = []
 				
 	def WallOrNot(self):
 		#To-do: write real dungeon generation code in place of this
@@ -205,9 +207,15 @@ class DungeonFloor:
 	
 	def PutEntity(self, entity, x, y):
 		self.Map[y][x].Entities.append(entity)
+		self.Entities.append(entity)
 	
 	def RemoveEntity(self, entity, x, y):
 		self.Map[y][x].Entities.remove(entity)
+		self.Entities.remove(entity)
+	
+	def MoveEntity(self, entity, sourcex, sourcey, destinationx, destinationy):
+		self.Map[sourcey][sourcex].Entities.remove(entity)
+		self.Map[destinationy][destinationx].Entities.append(entity)
 		
 	def Slice2DArray(self, top, bottom, left, right, array):
 		#To-do: There's no reason for this to be a method of this class.
@@ -261,6 +269,7 @@ class DungeonFloor:
 		return self.Pad2DArray(toppadding, bottompadding, leftpadding, rightpadding, slicedmap, Tile())
 
 class Tile:
+	#The tiles that make up our dungeon. This could be extended later to include other properties such as slippery ice or lakes.
 	def __init__(self, glyph = " ", barrier = False, opaque = False):
 		self.Glyph = glyph
 		self.Barrier = barrier
@@ -288,7 +297,8 @@ class Tile:
 			return self.Glyph
 
 class Entity:
-	def __init__(self, glyph = "@"):
+	#Class for non-static, "thinking," residents of the dungeon including shopkeepers/monsters/etc.
+	def __init__(self, glyph = "d"):
 		self.HP = 10
 		self.Strength = 10
 		self.Speed = 10
@@ -305,3 +315,22 @@ class Entity:
 		#Warning: This str method could change as other UI methods are supported. 
 		#For the time being it is serving as a stand-in for graphical tile information.
 		return self.Glyph
+
+class Monster(Entity):
+	#Stub for monster class
+	def __init__(self, *args, **kwargs):
+		Entity.__init__(self, *args, **kwargs)
+
+class Player(Entity):
+	#This class will handle player state information like equipment, inventory, available player verbs, etc.
+	def __init__(self, *args, **kwargs):
+		Entity.__init__(self, *args, **kwargs)
+		
+		self.Glyph = "@"
+		self.X = 0
+		self.Y = 0
+		
+	def UpdatePosition(self, destinationx, destinationy):
+		self.X = destinationx
+		self.Y = destinationy
+			
