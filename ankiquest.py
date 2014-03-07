@@ -111,10 +111,13 @@ class ConsoleUserInterface:
 	def DungeonWindow(self):
 		#Right now our tile is deciding by itself what kind of representation to give us via logic in the str method.
 		#This could be made more extensible in a graphical version later, but is fine as it is for a console version.
-		dungeontiles = self.GameState.CurrentFloor.PaddedSlice((self.GameState.Player.Y - self.DungeonHeight/2), 
+		dungeontiles = self.GameState.CurrentFloor.RenderSlice((self.GameState.Player.Y - self.DungeonHeight/2), 
 														(self.GameState.Player.Y + self.DungeonHeight/2),
 														(self.GameState.Player.X - self.DungeonWidth/2),
-														(self.GameState.Player.X + self.DungeonWidth/2))
+														(self.GameState.Player.X + self.DungeonWidth/2),
+														self.GameState.Player.X,
+														self.GameState.Player.Y,
+														self.GameState.Player.VisionRadius)
 		
 		lines = []
 		for row in dungeontiles:
@@ -164,7 +167,7 @@ class ConsoleUserInterface:
 
 class DungeonFloor:
 	#This class holds our information about the current floor including residents.
-	def __init__(self, width = 25, height = 25):
+	def __init__(self, width = 100, height = 100):
 		self.Width = width
 		self.Height = height
 		
@@ -183,11 +186,24 @@ class DungeonFloor:
 					[1,  0,  0,  1, -1,  0,  0, -1]
 				]
 
+	def OutOfBoundsCheck(self, x, y):
+		if (x < 0) or (y < 0) or (x > self.Width-1) or (y > self.Height-1):
+			return True
+	
+	def ResetLitTiles(self):
+		[[tile.ResetLight() for tile in row] for row in self.Map]			
+	
 	def SetLit(self, x, y):
 		self.Map[y][x].Lit = True
+		self.Map[y][x].Seen = True
+	
+	def SetUnlit(self, x, y):
+		self.Map[y][x].Lit = False
 	
 	def ComputeFOV(self, x, y, radius):
-		#"Calculate lit squares from the given location and radius"
+		#Calculate lit squares from the given location and radius.
+		#The area around the player is split into 8 rectangular areas.
+		#This convenience function uses math to compute the shape of each of these areas.
 		for oct in range(8):
 			self._Cast_Light(x, y, 1, 1.0, 0.0, radius,
 							 self.FOVMult[0][oct], self.FOVMult[1][oct],
@@ -195,43 +211,58 @@ class DungeonFloor:
 
 			
 	def _Cast_Light(self, cx, cy, row, start, end, radius, xx, xy, yx, yy, id):
-		#"Recursive lightcasting function"
+		#Recursive lightcasting function.
+		#To-do: clean up and comment this super-terse code.
+		#To-do: make light have some amount of bounce/sticky nature to make it less flickery in areas with lots of obstructions.
 		if start < end:
 			return
-		radius_squared = radius*radius
+			
+		radius_squared = radius**2
+		
 		for j in range(row, radius+1):
-			dx, dy = -j-1, -j
+			
+			dx = -j-1
+			dy = -j
+			
 			blocked = False
+			
 			while dx <= 0:
 				dx += 1
 				# Translate the dx, dy coordinates into map coordinates:
-				X, Y = cx + dx * xx + dy * xy, cy + dx * yx + dy * yy
-				# l_slope and r_slope store the slopes of the left and right
-				# extremities of the square we're considering:
-				l_slope, r_slope = (dx-0.5)/(dy+0.5), (dx+0.5)/(dy-0.5)
+				X = cx + dx * xx + dy * xy
+				Y = cy + dx * yx + dy * yy
+				
+				# l_slope and r_slope store the slopes of the left and right extremities of the square we're considering:
+				l_slope = (dx-0.5)/(dy+0.5)
+				r_slope = (dx+0.5)/(dy-0.5)
+				
 				if start < r_slope:
 					continue
+					
 				elif end > l_slope:
 					break
+					
 				else:
 					# Our light beam is touching this square; light it:
-					if dx*dx + dy*dy < radius_squared:
-						self.set_lit(X, Y)
+					if not self.OutOfBoundsCheck(X, Y) and (dx*dx + dy*dy < radius_squared):
+						self.SetLit(X, Y)
+						
 					if blocked:
 						# we're scanning a row of blocked squares:
-						if self.blocked(X, Y):
+						if self.OutOfBoundsCheck(X, Y) or self.GetTile(X, Y).Opaque:
 							new_start = r_slope
 							continue
 						else:
 							blocked = False
 							start = new_start
 					else:
-						if self.blocked(X, Y) and j < radius:
+						if (self.OutOfBoundsCheck(X, Y) or self.GetTile(X, Y).Opaque) and j < radius:
 							# This is a blocking square, start a child scan:
 							blocked = True
-							self._cast_light(cx, cy, j+1, start, l_slope,
+							self._Cast_Light(cx, cy, j+1, start, l_slope,
 											 radius, xx, xy, yx, yy, id+1)
 							new_start = r_slope
+							
 			# Row is scanned; do next row unless last square was blocked:
 			if blocked:
 				break
@@ -240,14 +271,13 @@ class DungeonFloor:
 		#To-do: write real dungeon generation code in place of this
 		x = randint(0,4)
 		if x == 0: return Tile(".")
-		elif x == 1: return Tile(" ")
-		elif x == 2: return Tile("'")
-		elif x == 3: return Tile(" ")
+		elif x == 1: return Tile(".")
+		elif x == 2: return Tile(".")
+		elif x == 3: return Tile(".")
 		elif x == 4: return Tile("O", True, True)
 	
 	def CollisionCheck(self, x, y):
-		#Simple bounds check on the values
-		if (x < 0) or (y < 0) or (x > self.Width-1) or (y > self.Height-1):
+		if self.OutOfBoundsCheck(x, y):
 			return True
 			
 		#Return False if nothing, True if something static, and the list of Entities on the Tile in the case of something interactive.
@@ -327,7 +357,14 @@ class DungeonFloor:
 		slicedmap = self.Slice2DArray(top, bottom, left, right, self.Map)
 
 		return self.Pad2DArray(toppadding, bottompadding, leftpadding, rightpadding, slicedmap, Tile())
-
+	
+	def RenderSlice(self, top, bottom, left, right, playerx, playery, visionradius):
+		self.ResetLitTiles()
+		self.SetLit(playerx, playery)
+		self.ComputeFOV(playerx, playery, visionradius)
+		return self.PaddedSlice(top, bottom, left, right)
+			
+		
 class Tile:
 	#The tiles that make up our dungeon. This could be extended later to include other properties such as slippery ice or lakes.
 	def __init__(self, glyph = " ", barrier = False, opaque = False):
@@ -343,19 +380,28 @@ class Tile:
 		self.Entities = []
 		self.Objects = []
 	
+	def ResetLight(self):
+		self.Lit = False
+	
 	def __str__(self):
 		#Warning: This str method could change as other UI methods are supported. 
 		#For the time being it is serving as a stand-in for graphical tile information.
 		
 		#Entities > Objects > Terrain
-		if self.Entities:
-			#Our last entity(the one on top) is the one we want displayed/is most important.
-			return self.Entities[-1].Glyph
-		elif self.Objects:		
-			#Our last item(the one on top) is the one we want displayed/is most important.
-			self.Objects[-1].Glyph
-		else:
+		if self.Lit:
+			if self.Entities:
+				#Our last entity(the one on top) is the one we want displayed/is most important.
+				return self.Entities[-1].Glyph
+			elif self.Objects:		
+				#Our last item(the one on top) is the one we want displayed/is most important.
+				self.Objects[-1].Glyph
+			else:
+				return self.Glyph
+				
+		elif self.Seen and self.Barrier:
 			return self.Glyph
+		else:
+			return " "
 
 class Entity:
 	#Class for non-static, "thinking," residents of the dungeon including shopkeepers/monsters/etc.
@@ -368,7 +414,7 @@ class Entity:
 		self.XP = 0
 		self.Level = 1
 		
-		self.VisionRadius = 3
+		self.VisionRadius = 10
 		
 		self.Glyph = glyph
 	
