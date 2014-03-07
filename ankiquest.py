@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
+
+#Standard Library Imports
 from random import randint
 from os import linesep
 from math import ceil
+string = ""
+
+#AnkiQuester imports
+from aq_strings import *
 
 class AnkiQuester:
 	def __init__(self):
@@ -38,19 +44,22 @@ class AnkiQuester:
 			self.PlayerX = newx
 			self.PlayerY = newy
 			self.CurrentFloor.PutEntity(self.Player, self.PlayerX, self.PlayerY)
-
+			self.NextTurn()
+	
+	def NextTurn(self):
+		self.TurnCounter += 1
 	
 	def GiveXP(self, entity, xp):
 		#To-do: allow for arbitrary experience curves that can change based on player class/race
-		entity.Stats["XP"] += xp
-		while entity.Stats["XP"] >= 2**entity.Stats["Level"]*15:
-			entity.Stats["Level"] += 1
-			self.Messages.append("Level up! Welcome to Level {0}!".format(entity.Stats["Level"]))
+		entity.XP += xp
+		while entity.XP >= 2**entity.Level*15:
+			entity.Level += 1
+			self.Messages.append(self.Strings.LevelUpMessage.format(entity.Level))
 	
 	def SpawnEnemy(self):
 		#This is a convenience function mostly for testing
 		position = self.CurrentFloor.RandomTile()
-		self.CurrentFloor.PutEntity(Entity(None, "d"), position[0], position[1])
+		self.CurrentFloor.PutEntity(Entity("d"), position[0], position[1])
 	
 	def DoFlashcard(self, debug):
 		#This is our single handler for flashcard data. 
@@ -87,6 +96,7 @@ class ConsoleUserInterface:
 		self.DungeonHeight = self.ScreenHeight - self.MsgHeight
 		
 		self.GameState = state
+		self.Strings = AQ_Strings()
 	
 	def RenderScreen(self):
 		#Take lists of lines for each screen portion and munge them together into a layout.
@@ -113,33 +123,44 @@ class ConsoleUserInterface:
 		
 		lines = []
 		for row in dungeontiles:
-			lines.append("".join([str(tile) for tile in row]))
+			lines.append(string.join([str(tile) for tile in row]))
 			
 		return lines
 	
 	def MessageWindow(self, linecount):
 		#To-do: support for user-definable formatting of the MessageWindow
 		linecount -= 1
-		label = "MESSAGES:"
+		label = self.Strings.MessageWindowLabel
 		if len(self.GameState.Messages) <= linecount: 
 			return [label] + [(" "+line) for line in self.GameState.Messages]
 		else:
 			return [label] + [(" "+line) for line in self.GameState.Messages[-1*linecount:]]
 	
 	def StatusWindowItems(self):
-		#To-do: support for user-definable formatting of the Status window.
+		#To-do: support for user-definable formatting of the Status window via something like lua.
 		#		This should include robust support for what kind of data to display.
 		
-		items = ["STATUS:"]
+		items = [self.Strings.StatusWindowLabel]
 		
-		#Blank items result in a blank line.
-		displayedstats = ["HP", "Strength", "Speed", "", "Level", "XP"]
+		#Blank items result in a blank line. Non-blank items map to dictionary keys in Player.Stats
+		displayedstats = [  
+							[self.Strings.HP, self.GameState.Player.HP],
+							[self.Strings.Strength, self.GameState.Player.Strength], 
+							[self.Strings.Speed, self.GameState.Player.Speed],
+							[self.Strings.Luck, self.GameState.Player.Luck],
+							[],
+							[self.Strings.Level, self.GameState.Player.Level],
+							[self.Strings.XP, self.GameState.Player.XP],
+							[],
+							[self.Strings.Turn, self.GameState.TurnCounter],
+						]
 		
-		for key in displayedstats:
-			if key in self.GameState.Player.Stats:
-				items.append(" {0}: {1}".format(key, self.GameState.Player.Stats[key]))
+		for line in displayedstats:
+			if line:
+				items.append(" {0}: {1}".format(line[0], line[1]))
 			else:
 				items.append("".center(self.StatusWidth))
+		
 		return items
 	
 			
@@ -267,15 +288,18 @@ class Tile:
 			return self.Glyph
 
 class Entity:
-	def __init__(self, initstats = None, tile = "@"):
-		if not initstats:
-			#a dictionary might be a bad way to do stats, but I'm uncertain as of yet
-			self.Stats = {"HP": 10, "Strength": 10, "Speed": 100, "Luck": 10, "XP": 0, "Level": 1}
-		else:
-			self.Stats = initstats
-
-		self.Glyph = tile
+	def __init__(self, glyph = "@"):
+		self.HP = 10
+		self.Strength = 10
+		self.Speed = 10
+		self.Luck = 10
+		
+		self.XP = 0
+		self.Level = 1
+		
 		self.VisionRadius = 3
+		
+		self.Glyph = glyph
 	
 	def __str__(self):
 		#Warning: This str method could change as other UI methods are supported. 
