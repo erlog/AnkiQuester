@@ -30,6 +30,11 @@ if not AQ_DEBUG:
 	mw.form.menuTools.addAction(action)
 	
 	OLD_answerCard = mw.reviewer._answerCard
+else:
+	import pdb
+	def qt_trace(self):
+		pyqtRemoveInputHook()
+		pdb.set_trace()
 
 class AQ_QT_Interface(QDialog):
 	def __init__(self):
