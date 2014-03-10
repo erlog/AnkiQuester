@@ -9,7 +9,6 @@ class AQ_Strings:
 		self.MessageWindowLabel = "MESSAGES-"
 		self.StatusWindowLabel = "STATUS-"
 		
-		
 		#Entity Stats and Information Strings
 		self.HP = "HP"
 		self.Strength = "Strength"
@@ -27,8 +26,13 @@ class AQ_Strings:
 		
 		
 		#Misc Labels
+		self.WaitingForFlashcard = "Please answer a flashcard."
 		self.LevelUpMessage = "Level up! Welcome to Level {0}!"
 		self.Turn = "Turn"
+		
+		#Combat Messages
+		self.EnemyKilled = "Vanquished!"
+		self.Missed = "Missed!"
 		
 		
 		

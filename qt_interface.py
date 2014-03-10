@@ -1,4 +1,4 @@
-from ankiquest import *
+import ankiquest
 
 #We need to check if we're running in Anki so we can import the right libraries.
 #Any instance outside of Anki is considered Debug at the moment, but could change in the future.
@@ -15,23 +15,26 @@ except ImportError:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
 	
-#If we're in Anki then we add the AQ menu item and clone _answerCard for our flashcard hook to use later
-#This should probably be split out to it's own file later.
+#If we're in Anki then we add the AQ menu item.
 if not AQ_DEBUG:
 	def AQ_Start():
 		mw.AQ_AnkiWindow = AQ_Anki_Window = AQ_QT_Interface()
 		AQ_Anki_Window.show()
-	
+		
 	def catch_answer(ease):
+		mw.AQ_AnkiWindow.AQState.ReceiveFlashcardAnswer(ease)
+		mw.AQ_AnkiWindow.activateWindow()
 		OLD_answerCard(ease)
 
+	OLD_answerCard = mw.reviewer._answerCard
+	
 	action = QAction("AnkiQuest", mw)
 	mw.connect(action, SIGNAL("triggered()"), AQ_Start)
 	mw.form.menuTools.addAction(action)
-	
-	OLD_answerCard = mw.reviewer._answerCard
+
 else:
 	import pdb
+	mw = None
 	def qt_trace(self):
 		pyqtRemoveInputHook()
 		pdb.set_trace()
@@ -39,11 +42,16 @@ else:
 class AQ_QT_Interface(QDialog):
 	def __init__(self):
 		super(AQ_QT_Interface, self).__init__()
+
+		#hook _answerCard with our version
+		if not AQ_DEBUG:
+			mw.reviewer._answerCard = catch_answer
+		
 		self.initUI()
 
 	def initUI(self):	 
-		self.AQState = AnkiQuester()
-		self.AQUI = ConsoleUserInterface(self.AQState)
+		self.AQState = ankiquest.AnkiQuester(mw, AQ_DEBUG)
+		self.AQUI = ankiquest.ConsoleUserInterface(self.AQState)
 		
 		self.font = QFont("Inconsolata", 12)
 		self.font.setLetterSpacing(1, 2)
@@ -82,6 +90,14 @@ class AQ_QT_Interface(QDialog):
 		elif event.key() == Qt.Key_Space: self.AQState.PlayerMove("Rest")
 		elif event.key() == Qt.Key_Escape: self.close()
 		self.update()
+	
+	def closeEvent(self, event):
+		#restore the old _answerCard method when AQ is closed
+		if not AQ_DEBUG:
+			mw.reviewer._answerCard = OLD_answerCard
+	
+	
+		
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)

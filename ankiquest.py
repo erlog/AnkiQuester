@@ -9,22 +9,40 @@
 from aq_entity import *
 from aq_terrain import *
 from aq_console_ui import *
+from aq_strings import *
+from aq_mathematics import *
 
 class AnkiQuester:
 	#The main loop and traffic cop for AQ. This class should be concerned only with keeping track
 	#	of game state and providing communication between various classes that make up AQ.
-	def __init__(self):
-		self.CurrentFloor = DungeonFloor()
+	def __init__(self, ankiwindow = None, debug = True):
+		self.CurrentFloor = DungeonFloor(30, 30)
 		self.Player = Player()
+		self.Strings = AQ_Strings()
 		
-		self.AQAnswerResult = None
+		self.NewX = None #this is proof of concept stuff that should be moved into a real event system
+		self.NewY = None #this is proof of concept stuff that should be moved into a real event system
+		self.AttackedEntity = None #this is proof of concept stuff that should be moved into a real event system
+		
+		self.WaitingForFlashcard = False
+		
+		self.AQDebug = debug
+		self.AnkiWindow = ankiwindow
+		
 		self.Messages = []
 		self.TurnCounter = 0
 		
 		self.SpawnEnemy()
+		self.SpawnEnemy()
+		self.SpawnEnemy()
+		self.SpawnEnemy()
 		self.CurrentFloor.PutEntity(self.Player, self.Player.X, self.Player.Y)
 	
 	def PlayerMove(self, direction):
+		if self.WaitingForFlashcard == True:
+			self.Messages.append(self.Strings.WaitingForFlashcard)
+			return
+		
 		#To-do: write a proper game rules class to handle the details of resolving collisions between entities.
 		newx = self.Player.X
 		newy = self.Player.Y
@@ -37,10 +55,25 @@ class AnkiQuester:
 
 		collisioncheck = self.CurrentFloor.CollisionCheck(newx, newy)
 		
-		if collisioncheck == False:
+		if collisioncheck == True:
+			return
+		elif collisioncheck == False:
 			self.CurrentFloor.MoveEntity(self.Player, self.Player.X, self.Player.Y, newx, newy)
 			self.Player.UpdatePosition(newx, newy)
 			self.NextTurn()
+		elif isinstance(collisioncheck[0], Entity):
+			#If we run into an Entity then we want to throw the flashcard up for the user. So we save
+			#a little bit of information so that we can respond to their answer. In the future there 
+			#will be a property event system that will help keep track of game state and consequences 
+			#for flashcard answers.
+			
+			self.AttackedEntity = collisioncheck[0]
+			self.NewX = newx
+			self.NewY = newy
+			self.DoFlashcard()
+			if self.AQDebug:
+				self.ReceiveFlashcardAnswer(RandomInteger(1,2))
+			
 	
 	def NextTurn(self):
 		self.TurnCounter += 1
@@ -56,22 +89,36 @@ class AnkiQuester:
 		position = self.CurrentFloor.RandomTile()
 		self.CurrentFloor.PutEntity(Monster(), position[0], position[1])
 	
-	def DoFlashcard(self, debug):
+	def DoFlashcard(self):
 		#This is our single handler for flashcard data. 
 		#Nowhere else should ever try to do anything with flashcards.
 		#The idea is that if we can easily dummy this function out for an Anki-less experience.
 		#To-do: Fix this hook. It was broken when we moved from libtcod to Qt.
-		if debug:
-			return 2
-		else:
-			self.AQAnswerResult = None
-			AQIOController.FocusAnki()
+		self.WaitingForFlashcard = True
+		
+		if not self.AQDebug:
+			self.AnkiWindow.activateWindow()
 			
-			while self.AQAnswerResult == None:
-				AQIOController.PauseForReview(AQGameInstance)
-				
-			AQIOController.FocusGame()
-			return self.AQAnswerResult
-
+	def ReceiveFlashcardAnswer(self, answer):
+		#This function right now is designed for a kind of simple combat scenario where enemies die in 1 hit
+		#if the player gets the question correct. This is proof of concept code that should be replaced by a
+		#proper event system that will make it easier to manage game state and card consequences.
+	
+		self.WaitingForFlashcard = False
+		
+		if answer > 1:
+			self.CurrentFloor.RemoveEntity(self.AttackedEntity, self.NewX, self.NewY)
+			self.Messages.append(self.Strings.EnemyKilled)
+			self.CurrentFloor.MoveEntity(self.Player, self.Player.X, self.Player.Y, self.NewX, self.NewY)
+			self.Player.UpdatePosition(self.NewX, self.NewY)
+			
+			self.AttackedEntity = None
+			self.NewX = None
+			self.NewY = None
+			
+			self.NextTurn()
+		else:
+			self.Messages.append(self.Strings.Missed)
+		
 
 			
