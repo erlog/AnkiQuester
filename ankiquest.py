@@ -58,7 +58,9 @@ class AnkiQuester:
 		elif direction == "Down": newy += 1
 		elif direction == "Left": newx -= 1
 		elif direction == "Right": newx += 1
-		elif direction == "Rest": pass
+		elif direction == "Rest": 
+			self.NextTurn()
+			return
 
 		collisioncheck = self.CurrentFloor.CollisionCheck(newx, newy)
 		

@@ -3,6 +3,8 @@
 #It might be necessary in the future to move Player/Monster to separate
 #files after they become significantly more complicated or more content is added.
 
+from aq_mathematics import *
+
 class Entity:
 	#Class for non-static, "thinking," residents of the dungeon including shopkeepers/monsters/etc.
 	def __init__(self, glyph = "d"):
@@ -36,7 +38,27 @@ class Monster(Entity):
 		Entity.__init__(self, *args, **kwargs)
 	
 	def ChasePlayer(self, player, floor):
-		pass
+		newx = self.X
+		newy = self.Y
+		
+		if player.X > self.X:
+			newx += 1
+		elif player.X < self.X:
+			newx -= 1
+		
+		if player.Y > self.Y:
+			newy += 1
+		elif player.Y < self.Y:
+			newy -= 1
+			
+		if RandomInteger(0, 1):
+			newy = self.Y
+		else:
+			newx = self.X
+		
+		if floor.CollisionCheck(newx, newy) == False:
+			floor.MoveEntity(self, self.X, self.Y, newx, newy)
+			self.UpdatePosition(newx, newy)
 
 class Player(Entity):
 	#This class will handle player state information like equipment, inventory, available player verbs, etc.
