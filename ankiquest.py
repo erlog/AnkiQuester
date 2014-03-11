@@ -11,6 +11,7 @@ from aq_terrain import *
 from aq_console_ui import *
 from aq_strings import *
 from aq_mathematics import *
+import aq_event;
 
 class AnkiQuester:
 	#The main loop and traffic cop for AQ. This class should be concerned only with keeping track
@@ -19,6 +20,7 @@ class AnkiQuester:
 		self.CurrentFloor = DungeonFloor(30, 30)
 		self.Player = Player()
 		self.Strings = AQ_Strings()
+		self.EventListeners = [self.Player, self.CurrentFloor] #Event stuff is profoundly poorly implemented right now
 		
 		self.NewX = None #this is proof of concept stuff that should be moved into a real event system
 		self.NewY = None #this is proof of concept stuff that should be moved into a real event system
@@ -37,6 +39,11 @@ class AnkiQuester:
 		self.SpawnEnemy()
 		self.SpawnEnemy()
 		self.CurrentFloor.PutEntity(self.Player, self.Player.X, self.Player.Y)
+	
+	def SendEventToListeners(self, event = None):
+		#Event stuff is profoundly poorly implemented right now
+		for listener in self.EventListeners:
+			listener.EventListener(event)
 	
 	def PlayerMove(self, direction):
 		if self.WaitingForFlashcard == True:
