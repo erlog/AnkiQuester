@@ -115,11 +115,8 @@ class DungeonFloor:
 		entity.UpdatePosition(destinationx, destinationy)
 	
 	def PaddedSlice(self, top, bottom, left, right):
-		toppadding = 0
-		bottompadding = 0
-		leftpadding = 0
-		rightpadding = 0
-		
+		toppadding, bottompadding, leftpadding, rightpadding = 0, 0, 0, 0
+
 		if top < 0: toppadding = abs(top)
 		if bottom > self.Height: bottompadding = abs(bottom - self.Height)
 		if left < 0: leftpadding = abs(left)

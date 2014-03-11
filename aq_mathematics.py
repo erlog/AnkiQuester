@@ -90,7 +90,44 @@ def Cast_Light(floor, cx, cy, row, start, end, radius, xx, xy, yx, yy, id):
 							
 			# Row is scanned; do next row unless last square was blocked:
 			if blocked:
-				break
-
+				break				
+				
+def FindPath(floor, sourcex, sourcey, destinationx, destinationy):
+		#This is an A* algorithm in the process of being written.
+		#Right now it just searches adjacent tiles and chooses the lowest cost one.
+		#In the future this should be completed in order to have true pathfinding.
+		#This function should return the list of tiles that represent the path.
+		
+		#Lowest possible number of moves to reach destination
+		lowestcost = max(abs(destinationx - sourcex), abs(destinationy - sourcey))
+		
+		#Matrix to use with a list comprehension to grab adjacent tiles
+		adjacenttiles =[(-1, -1), 
+					(-1,  0),
+					(-1,  1),
+					(0,  -1),
+					(0,   1),
+					(1,  -1),
+					(1,   0),
+					(1,   1)]
+		
+		opentiles = [(sourcex+tile[0], sourcey+tile[1]) for tile in adjacenttiles]
+		
+		#Keep a dictionary of movement costs with the list of tiles that have that cost
+		tilecosts = {}
+		for tile in opentiles:
+			if floor.CollisionCheck(tile[0], tile[1]) == False:
+				cost = max(abs(tile[0] - sourcex), abs(tile[1] - sourcey)) + max(abs(destinationx - tile[0]), abs(destinationy - tile[1]))
+				if cost in tilecosts:
+					tilecosts[cost].append(tile)
+				else:
+					tilecosts[cost] = [tile]
+		
+		#Grab a random tile from the list of tiles with the minimum cost.
+		return [RandomItem(tilecosts[min(tilecosts.keys())])]
+	
 def RandomInteger(minimum, maximum):
 	return randint(minimum, maximum)
+
+def RandomItem(list):
+	return list[randint(0, len(list)-1)]
