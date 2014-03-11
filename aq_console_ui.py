@@ -88,7 +88,7 @@ class ConsoleUserInterface:
 							[self.Strings.Level, self.GameState.Player.Level],
 							[self.Strings.XP, self.GameState.Player.XP],
 							[],
-							[self.Strings.Turn, self.GameState.TurnCounter],
+							[self.Strings.Turn, self.GameState.CurrentTurn],
 						]
 		
 		for line in displayedstats:

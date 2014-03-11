@@ -2,19 +2,20 @@
 
 #AnkiQuester imports
 from aq_mathematics import *
+from aq_entity import *
+import aq_event
 
 class DungeonFloor:
-	#This class holds our information about the current floor including residents.
+	#This class holds information about the current floor including residents.
 	def __init__(self, width = 100, height = 100, outdoor = False):
 		self.Width = width
 		self.Height = height
 		
-		#To-do: make this extensible via inheritance to be able to generate different kinds of dungeon floors
+		#To-do: write a real level generator
 		self.Map = [[self.WallOrNot() for x in range(self.Width)] for y in range(self.Height)]
 		
 		#We maintain a level-wide list of entities as well as a list of Entities on each tile.
-		#Except for the player, I don't want entities in the dungeon to ever be thinking in terms of their X/Y position.
-		#This may need to be refactored later because it could be, like, the worst idea.
+		#This way we don't have to go searching the entire level for Entities.
 		self.Entities = []
 	
 		self.FOVMult = [
@@ -23,6 +24,13 @@ class DungeonFloor:
 					[0,  1,  1,  0,  0, -1, -1,  0],
 					[1,  0,  0,  1, -1,  0,  0, -1]
 				]
+		
+		#The below is a convenience function for debug purposes.
+		self.SpawnRandomEnemy()
+	
+	def SpawnRandomEnemy(self):
+		pos = self.RandomPosition()
+		self.PutEntity(Monster(), pos[0], pos[1])
 
 	def OutOfBoundsCheck(self, x, y):
 		if (x < 0) or (y < 0) or (x > self.Width-1) or (y > self.Height-1):
@@ -48,6 +56,15 @@ class DungeonFloor:
 			self._Cast_Light(x, y, 1, 1.0, 0.0, radius,
 							 self.FOVMult[0][oct], self.FOVMult[1][oct],
 							 self.FOVMult[2][oct], self.FOVMult[3][oct], 0)
+	
+	def EventListener(self, event):
+		if event.EventType == aq_event.NextTurn.EventType:
+			self.NextTurn(event)
+	
+	def NextTurn(self, event):
+		for entity in self.Entities:
+			if isinstance(entity, Monster):
+				entity.ChasePlayer(event.GameState.Player, self)
 
 			
 	def _Cast_Light(self, cx, cy, row, start, end, radius, xx, xy, yx, yy, id):
@@ -109,7 +126,7 @@ class DungeonFloor:
 				
 	def WallOrNot(self):
 		#To-do: write real dungeon generation code in place of this
-		x = RandomInteger(0,3)
+		x = RandomInteger(0,4)
 		if x == 0: return Tile(".")
 		elif x == 1: return Tile(".")
 		elif x == 2: return Tile(".")
@@ -117,30 +134,36 @@ class DungeonFloor:
 		elif x == 4: return Tile("O", True, True)
 	
 	def CollisionCheck(self, x, y):
-		if self.OutOfBoundsCheck(x, y):
-			return True
-			
-		#Return False if nothing, True if something static, and the list of Entities on the Tile in the case of something interactive.
+		#Return False if nothing, True if something static,
+		#and the list of Entities on the Tile in the case of 
+		#something interactive.
 		tile = self.GetTile(x, y)
-		if tile.Entities: 
+		if not tile:
+			return True
+		elif tile.Entities: 
 			return tile.Entities
 		elif tile.Barrier: 
 			return True
 		else:
 			return False
 	
-	def RandomTile(self):
+	def RandomPosition(self):
 		return RandomInteger(0, self.Width-1), randint(0, self.Height-1)
 	
 	def GetTile(self, x, y):
-		return self.Map[y][x]
+		if self.OutOfBoundsCheck(x, y):
+			return False
+		else:
+			return self.Map[y][x]
 	
 	def PutEntity(self, entity, x, y):
 		entity.UpdatePosition(x, y)
 		self.Map[y][x].Entities.append(entity)
 		self.Entities.append(entity)
 	
-	def RemoveEntity(self, entity, x, y):
+	def RemoveEntity(self, entity, x = None, y = None):
+		if not x: x = entity.X
+		if not y: y = entity.Y
 		self.Map[y][x].Entities.remove(entity)
 		self.Entities.remove(entity)
 	

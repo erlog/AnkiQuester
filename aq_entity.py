@@ -4,6 +4,7 @@
 #files after they become significantly more complicated or more content is added.
 
 from aq_mathematics import *
+import aq_event
 
 class Entity:
 	#Class for non-static, "thinking," residents of the dungeon including shopkeepers/monsters/etc.
@@ -31,9 +32,10 @@ class Entity:
 		#Warning: This str method could change as other UI methods are supported. 
 		#For the time being it is serving as a stand-in for graphical tile information.
 		return self.Glyph
+		
 
 class Monster(Entity):
-	#Stub for monster class
+	#Stub for monster class.
 	def __init__(self, *args, **kwargs):
 		Entity.__init__(self, *args, **kwargs)
 	
@@ -59,6 +61,7 @@ class Monster(Entity):
 		if floor.CollisionCheck(newx, newy) == False:
 			floor.MoveEntity(self, self.X, self.Y, newx, newy)
 			self.UpdatePosition(newx, newy)
+			
 
 class Player(Entity):
 	#This class will handle player state information like equipment, inventory, available player verbs, etc.
@@ -66,5 +69,17 @@ class Player(Entity):
 		Entity.__init__(self, *args, **kwargs)
 		
 		self.Glyph = "@"
+	
+	def Attack(self, event):
+		if event.EventDetails[0] == self:
+			enemy = event.EventDetails[1]
+			event.GameState.CurrentFloor.RemoveEntity(enemy)
+			event.GameState.CurrentFloor.MoveEntity(self, self.X, self.Y, enemy.X, enemy.Y)
+			self.UpdatePosition(enemy.X, enemy.Y)
+			event.GameState.CurrentFloor.SpawnRandomEnemy()
+		
+	def EventListener(self, event):
+		if event.EventType == aq_event.Attack.EventType:
+			self.Attack(event)
 		
 	
