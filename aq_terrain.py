@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import pdb
 
 #AnkiQuester imports
 from aq_mathematics import *
@@ -7,12 +8,13 @@ import aq_event
 
 class DungeonFloor:
 	#This class holds information about the current floor including residents.
-	def __init__(self, width = 100, height = 100, outdoor = False):
+	def __init__(self, width = 5, height = 5, outdoor = False):
 		self.Width = width
 		self.Height = height
 		
 		#To-do: write a real level generator
-		self.Map = [[self.WallOrNot() for x in range(self.Width)] for y in range(self.Height)]
+		#self.Map = [[self.WallOrNot() for x in range(self.Width)] for y in range(self.Height)]
+		self.Map = self.MakeRoom(self.Width, self.Height, Tile("-", True, True), Tile("|", True, True), Tile("+", True, True), Tile("+", True, True),  Tile("+", True, True),  Tile("+", True, True),  Tile(" ")) 
 		
 		#We maintain a level-wide list of entities as well as a list of Entities on each tile.
 		#This way we don't have to go searching the entire level for Entities.
@@ -26,7 +28,7 @@ class DungeonFloor:
 				]
 		
 		#The below is a convenience function for debug purposes.
-		self.SpawnRandomEnemy()
+		#self.SpawnRandomEnemy()
 	
 	def SpawnRandomEnemy(self):
 		pos = self.RandomPosition()
@@ -131,6 +133,22 @@ class DungeonFloor:
 		self.SetTileLit(playerx, playery)
 		self.ComputeFOV(playerx, playery, visionradius)
 		return self.PaddedSlice(top, bottom, left, right)
+	
+	def MakeRoom(self, width, height, horizontal = "-", vertical = "|", topleftcorner = "+", toprightcorner = "+", bottomrightcorner = "+", bottomleftcorner = "+", blank = " "):
+		top = [horizontal for x in range(self.Width)]
+		top[0], top[-1] = topleftcorner, toprightcorner
+		
+		bottom = [blank for x in range(self.Width)]
+		bottom[0], bottom[-1] = bottomleftcorner, bottomrightcorner
+		
+		blankline = [vertical] + [blank for x in range(self.Width-2)] + [vertical]
+		
+		return [top] + [blankline for y in range(self.Height-2)] + [bottom]
+		
+		
+		
+		
+		
 
 class Tile:
 	#The tiles that make up our dungeon. This could be extended later to include other properties such as slippery ice or lakes.
@@ -169,3 +187,7 @@ class Tile:
 			return self.Glyph
 		else:
 			return " "
+
+if __name__ == '__main__':
+	ter = DungeonFloor()
+	ter.MakeRoom(5, 5)
