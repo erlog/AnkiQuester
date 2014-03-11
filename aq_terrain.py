@@ -5,7 +5,7 @@ from aq_mathematics import *
 
 class DungeonFloor:
 	#This class holds our information about the current floor including residents.
-	def __init__(self, width = 100, height = 100):
+	def __init__(self, width = 100, height = 100, outdoor = False):
 		self.Width = width
 		self.Height = height
 		
@@ -27,16 +27,18 @@ class DungeonFloor:
 	def OutOfBoundsCheck(self, x, y):
 		if (x < 0) or (y < 0) or (x > self.Width-1) or (y > self.Height-1):
 			return True
+		else:
+			return False
 	
-	def ResetLitTiles(self):
-		[[tile.ResetLight() for tile in row] for row in self.Map]			
+	def ResetTileLights(self, status = False):
+		[[tile.SetLit(status) for tile in row] for row in self.Map]	
 	
-	def SetLit(self, x, y):
-		self.Map[y][x].Lit = True
-		self.Map[y][x].Seen = True
-	
-	def SetUnlit(self, x, y):
-		self.Map[y][x].Lit = False
+	def SetTileLit(self, x, y, status = True):
+		if status:
+			self.Map[y][x].Lit = True
+			self.Map[y][x].Seen = True
+		else:
+			self.Map[y][x].Lit = False
 	
 	def ComputeFOV(self, x, y, radius):
 		#Calculate lit squares from the given location and radius.
@@ -83,7 +85,7 @@ class DungeonFloor:
 				else:
 					# Our light beam is touching this square; light it:
 					if not self.OutOfBoundsCheck(X, Y) and (dx*dx + dy*dy < radius_squared):
-						self.SetLit(X, Y)
+						self.SetTileLit(X, Y)
 						
 					if blocked:
 						# we're scanning a row of blocked squares:
@@ -107,7 +109,7 @@ class DungeonFloor:
 				
 	def WallOrNot(self):
 		#To-do: write real dungeon generation code in place of this
-		x = RandomInteger(0,4)
+		x = RandomInteger(0,3)
 		if x == 0: return Tile(".")
 		elif x == 1: return Tile(".")
 		elif x == 2: return Tile(".")
@@ -134,6 +136,7 @@ class DungeonFloor:
 		return self.Map[y][x]
 	
 	def PutEntity(self, entity, x, y):
+		entity.UpdatePosition(x, y)
 		self.Map[y][x].Entities.append(entity)
 		self.Entities.append(entity)
 	
@@ -144,6 +147,7 @@ class DungeonFloor:
 	def MoveEntity(self, entity, sourcex, sourcey, destinationx, destinationy):
 		self.Map[sourcey][sourcex].Entities.remove(entity)
 		self.Map[destinationy][destinationx].Entities.append(entity)
+		entity.UpdatePosition(destinationx, destinationy)
 	
 	def PaddedSlice(self, top, bottom, left, right):
 		toppadding = 0
@@ -161,8 +165,8 @@ class DungeonFloor:
 		return Pad2DArray(toppadding, bottompadding, leftpadding, rightpadding, slicedmap, Tile())
 	
 	def RenderSlice(self, top, bottom, left, right, playerx, playery, visionradius):
-		self.ResetLitTiles()
-		self.SetLit(playerx, playery)
+		self.ResetTileLights()
+		self.SetTileLit(playerx, playery)
 		self.ComputeFOV(playerx, playery, visionradius)
 		return self.PaddedSlice(top, bottom, left, right)
 
@@ -181,8 +185,8 @@ class Tile:
 		self.Entities = []
 		self.Objects = []
 	
-	def ResetLight(self):
-		self.Lit = False
+	def SetLit(self, status = True):
+		self.Lit = status
 	
 	def __str__(self):
 		#Warning: This str method could change as other UI methods are supported. 

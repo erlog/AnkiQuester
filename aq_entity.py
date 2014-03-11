@@ -14,9 +14,16 @@ class Entity:
 		self.XP = 0
 		self.Level = 1
 		
-		self.VisionRadius = 10
+		self.VisionRadius = 15
 		
 		self.Glyph = glyph
+		
+		self.X = 0
+		self.Y = 0
+	
+	def UpdatePosition(self, destinationx, destinationy):
+		self.X = destinationx
+		self.Y = destinationy
 	
 	def __str__(self):
 		#Warning: This str method could change as other UI methods are supported. 
@@ -27,6 +34,9 @@ class Monster(Entity):
 	#Stub for monster class
 	def __init__(self, *args, **kwargs):
 		Entity.__init__(self, *args, **kwargs)
+	
+	def ChasePlayer(self, player, floor):
+		pass
 
 class Player(Entity):
 	#This class will handle player state information like equipment, inventory, available player verbs, etc.
@@ -34,9 +44,5 @@ class Player(Entity):
 		Entity.__init__(self, *args, **kwargs)
 		
 		self.Glyph = "@"
-		self.X = 0
-		self.Y = 0
 		
-	def UpdatePosition(self, destinationx, destinationy):
-		self.X = destinationx
-		self.Y = destinationy
+	

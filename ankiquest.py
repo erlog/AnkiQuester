@@ -83,6 +83,10 @@ class AnkiQuester:
 			
 	
 	def NextTurn(self):
+		for entity in self.CurrentFloor.Entities:
+			if isinstance(entity, Monster):
+				entity.ChasePlayer(self.Player, self.CurrentFloor)
+		
 		self.TurnCounter += 1
 	
 	def GiveXP(self, entity, xp):
