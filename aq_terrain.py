@@ -13,8 +13,9 @@ class DungeonFloor:
 		self.Height = height
 		
 		#To-do: write a real level generator
-		self.Map = self.MakeRoom(self.Width, self.Height) 
-		#self.Map = self.DummyMap(self.Width, self.Height)
+		self.Map = self.DummyMap(self.Width, self.Height, Tile)
+		self.InsertCellsInMap(1, 1, self.MakeRoom(self.Width-2, self.Height-2))
+		self.InsertCellsInMap(2, 2, self.DummyMap(self.Width-4, self.Height-4, self.WallOrNot))
 		
 		#We maintain a level-wide list of entities as well as a list of Entities on each tile.
 		#This way we don't have to go searching the entire level for Entities.
@@ -101,7 +102,6 @@ class DungeonFloor:
 			return self.Map[y][x]
 	
 	def PutEntity(self, entity, x, y):
-		print "put!"
 		self.Map[y][x].Entities.append(entity)
 		self.Entities.append(entity)
 		entity.UpdatePosition(x, y)
@@ -135,19 +135,24 @@ class DungeonFloor:
 		self.ComputeFOV(playerx, playery, visionradius)
 		return self.PaddedSlice(top, bottom, left, right)
 	
-	def DummyMap(self, width, height):
-		return [[self.WallOrNot() for x in range(width)] for y in range(height)]
+	def DummyMap(self, width, height, dummyfunction):
+		return [[dummyfunction() for x in range(width)] for y in range(height)]
 	
 	def MakeRoom(self, width, height, horizontal = chr(6), vertical = chr(5), topleftcorner = chr(1), toprightcorner = chr(2), bottomrightcorner = chr(4), bottomleftcorner = chr(3), blank = " "):
-		top = [Tile(horizontal, True, True) for x in range(self.Width)]
+		top = [Tile(horizontal, True, True) for x in range(width)]
 		top[0], top[-1] = Tile(topleftcorner, True, True), Tile(toprightcorner, True, True)
 		
-		bottom = [Tile(horizontal, True, True) for x in range(self.Width)]
+		bottom = [Tile(horizontal, True, True) for x in range(width)]
 		bottom[0], bottom[-1] = Tile(bottomleftcorner, True, True), Tile(bottomrightcorner, True, True)
 
-		return [top] + [[Tile(vertical, True, True)] + [Tile(blank, False, False) for x in range(self.Width-2)] + [Tile(vertical, True, True)] for y in range(self.Height-2)] + [bottom]
+		return [top] + [[Tile(vertical, True, True)] + [Tile(blank, False, False) for x in range(width-2)] + [Tile(vertical, True, True)] for y in range(height-2)] + [bottom]
 		
-		
+	def InsertCellsInMap(self, destinationx, destinationy, cells):
+		height = len(cells)
+		width = len(cells[0])
+		for y in range(height):
+			for x in range(width):
+				self.Map[destinationy + y][destinationx + x] = cells[y][x]
 		
 			
 
