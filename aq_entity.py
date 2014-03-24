@@ -25,6 +25,8 @@ class Entity:
 		self.Y = 0
 	
 	def UpdatePosition(self, destinationx, destinationy):
+		#This function is for updating informational variables only.
+		#Use of this function does not move the entity.
 		self.X = destinationx
 		self.Y = destinationy
 	
@@ -50,7 +52,7 @@ class Player(Entity):
 	#This class will handle player state information like equipment, inventory, available player verbs, etc.
 	def __init__(self, *args, **kwargs):
 		Entity.__init__(self, *args, **kwargs)
-		
+	
 		self.Glyph = "@"
 	
 	def Attack(self, event):

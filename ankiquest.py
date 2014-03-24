@@ -17,7 +17,7 @@ class AnkiQuester:
 	#The main loop and traffic cop for AQ. This class should be concerned only with keeping track
 	#	of game state and providing communication between various classes that make up AQ.
 	def __init__(self, ankiwindow = None, debug = True):
-		self.CurrentFloor = DungeonFloor(20, 20)
+		self.CurrentFloor = DungeonFloor(5, 10)
 		self.Player = Player()
 		self.Strings = AQ_Strings()
 		self.EventListeners = [self.Player, self.CurrentFloor]
@@ -31,6 +31,7 @@ class AnkiQuester:
 		self.Messages = []
 		self.CurrentTurn = 0
 	
+		self.Player.UpdatePosition(1,1)
 		self.CurrentFloor.PutEntity(self.Player, self.Player.X, self.Player.Y)
 	
 	def SendEventToListeners(self, event = None):
@@ -66,7 +67,6 @@ class AnkiQuester:
 		elif collisioncheck == False:
 			#To-do: Turn the move order into an event.
 			self.CurrentFloor.MoveEntity(self.Player, self.Player.X, self.Player.Y, newx, newy)
-			self.Player.UpdatePosition(newx, newy)
 			self.NextTurn()
 		
 		elif isinstance(collisioncheck[0], Entity):

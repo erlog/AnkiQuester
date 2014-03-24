@@ -13,8 +13,8 @@ class DungeonFloor:
 		self.Height = height
 		
 		#To-do: write a real level generator
-		#self.Map = [[self.WallOrNot() for x in range(self.Width)] for y in range(self.Height)]
-		self.Map = self.MakeRoom(self.Width, self.Height, Tile("-", True, True), Tile("|", True, True), Tile("+", True, True), Tile("+", True, True),  Tile("+", True, True),  Tile("+", True, True),  Tile(" ")) 
+		self.Map = self.MakeRoom(self.Width, self.Height) 
+		#self.Map = self.DummyMap(self.Width, self.Height)
 		
 		#We maintain a level-wide list of entities as well as a list of Entities on each tile.
 		#This way we don't have to go searching the entire level for Entities.
@@ -101,9 +101,10 @@ class DungeonFloor:
 			return self.Map[y][x]
 	
 	def PutEntity(self, entity, x, y):
-		entity.UpdatePosition(x, y)
+		print "put!"
 		self.Map[y][x].Entities.append(entity)
 		self.Entities.append(entity)
+		entity.UpdatePosition(x, y)
 	
 	def RemoveEntity(self, entity, x = None, y = None):
 		if not x: x = entity.X
@@ -134,21 +135,21 @@ class DungeonFloor:
 		self.ComputeFOV(playerx, playery, visionradius)
 		return self.PaddedSlice(top, bottom, left, right)
 	
-	def MakeRoom(self, width, height, horizontal = "-", vertical = "|", topleftcorner = "+", toprightcorner = "+", bottomrightcorner = "+", bottomleftcorner = "+", blank = " "):
-		top = [horizontal for x in range(self.Width)]
-		top[0], top[-1] = topleftcorner, toprightcorner
+	def DummyMap(self, width, height):
+		return [[self.WallOrNot() for x in range(width)] for y in range(height)]
+	
+	def MakeRoom(self, width, height, horizontal = chr(6), vertical = chr(5), topleftcorner = chr(1), toprightcorner = chr(2), bottomrightcorner = chr(4), bottomleftcorner = chr(3), blank = " "):
+		top = [Tile(horizontal, True, True) for x in range(self.Width)]
+		top[0], top[-1] = Tile(topleftcorner, True, True), Tile(toprightcorner, True, True)
 		
-		bottom = [blank for x in range(self.Width)]
-		bottom[0], bottom[-1] = bottomleftcorner, bottomrightcorner
-		
-		blankline = [vertical] + [blank for x in range(self.Width-2)] + [vertical]
-		
-		return [top] + [blankline for y in range(self.Height-2)] + [bottom]
-		
-		
-		
+		bottom = [Tile(horizontal, True, True) for x in range(self.Width)]
+		bottom[0], bottom[-1] = Tile(bottomleftcorner, True, True), Tile(bottomrightcorner, True, True)
+
+		return [top] + [[Tile(vertical, True, True)] + [Tile(blank, False, False) for x in range(self.Width-2)] + [Tile(vertical, True, True)] for y in range(self.Height-2)] + [bottom]
 		
 		
+		
+			
 
 class Tile:
 	#The tiles that make up our dungeon. This could be extended later to include other properties such as slippery ice or lakes.
@@ -187,7 +188,3 @@ class Tile:
 			return self.Glyph
 		else:
 			return " "
-
-if __name__ == '__main__':
-	ter = DungeonFloor()
-	ter.MakeRoom(5, 5)
