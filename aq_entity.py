@@ -66,5 +66,10 @@ class Player(Entity):
 	def EventListener(self, event):
 		if event.EventType == aq_event.Attack.EventType:
 			self.Attack(event)
-		
+	
+	def GiveXP(self, entity, xp):
+		#To-do: allow for arbitrary experience curves that can change based on player class/race
+		self.XP += xp
+		while self.XP >= 2**self.Level*15:
+			self.Level += 1
 	

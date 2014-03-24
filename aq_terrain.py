@@ -13,9 +13,7 @@ class DungeonFloor:
 		self.Height = height
 		
 		#To-do: write a real level generator
-		self.Map = self.DummyMap(self.Width, self.Height, Tile)
-		self.InsertCellsInMap(1, 1, self.MakeRoom(self.Width-2, self.Height-2))
-		self.InsertCellsInMap(2, 2, self.DummyMap(self.Width-4, self.Height-4, self.WallOrNot))
+		self.Map = self.DummyMap(self.Width, self.Height, self.WallOrNot)
 		
 		#We maintain a level-wide list of entities as well as a list of Entities on each tile.
 		#This way we don't have to go searching the entire level for Entities.
@@ -29,7 +27,7 @@ class DungeonFloor:
 				]
 		
 		#The below is a convenience function for debug purposes.
-		#self.SpawnRandomEnemy()
+		self.SpawnRandomEnemy()
 	
 	def SpawnRandomEnemy(self):
 		pos = self.RandomPosition()
@@ -71,12 +69,13 @@ class DungeonFloor:
 				
 	def WallOrNot(self):
 		#To-do: write real dungeon generation code in place of this
-		x = RandomInteger(0,4)
+		x = RandomInteger(0,5)
 		if x == 0: return Tile(".")
 		elif x == 1: return Tile(".")
 		elif x == 2: return Tile(".")
 		elif x == 3: return Tile(".")
-		elif x == 4: return Tile("O", True, True)
+		elif x == 4: return Tile(".")
+		elif x == 5: return Tile("O", True, True)
 	
 	def CollisionCheck(self, x, y):
 		#Return False if nothing, True if something static,

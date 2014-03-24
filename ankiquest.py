@@ -17,7 +17,7 @@ class AnkiQuester:
 	#The main loop and traffic cop for AQ. This class should be concerned only with keeping track
 	#	of game state and providing communication between various classes that make up AQ.
 	def __init__(self, ankiwindow = None, debug = True):
-		self.CurrentFloor = DungeonFloor(10, 20)
+		self.CurrentFloor = DungeonFloor(50, 50)
 		self.Player = Player()
 		self.Strings = AQ_Strings()
 		self.EventListeners = [self.Player, self.CurrentFloor]
@@ -31,7 +31,7 @@ class AnkiQuester:
 		self.Messages = []
 		self.CurrentTurn = 0
 	
-		self.Player.UpdatePosition(2,2)
+		self.Player.UpdatePosition(0,0)
 		self.CurrentFloor.PutEntity(self.Player, self.Player.X, self.Player.Y)
 	
 	def SendEventToListeners(self, event = None):
@@ -70,9 +70,9 @@ class AnkiQuester:
 			self.NextTurn()
 		
 		elif isinstance(collisioncheck[0], Entity):
+		
 			#If we run into an Entity then we want to throw the flashcard up for the user, and then
 			#compute consequences based on the answer.
-			
 			self.DoFlashcard(
 			aq_event.Attack.EventWithDetailsAndGameState( [self.Player, collisioncheck[0]], self )
 			)
@@ -83,13 +83,6 @@ class AnkiQuester:
 	def NextTurn(self):
 		self.SendEventToListeners(aq_event.NextTurn.EventWithGameState(self))
 		self.CurrentTurn += 1
-	
-	def GiveXP(self, entity, xp):
-		#To-do: allow for arbitrary experience curves that can change based on player class/race
-		#To-do: move this function to the Player or Entity class
-		entity.XP += xp
-		while entity.XP >= 2**entity.Level*15:
-			entity.Level += 1
 	
 	def DoFlashcard(self, event):
 		self.PendingEvent = event
