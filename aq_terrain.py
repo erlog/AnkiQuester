@@ -13,8 +13,8 @@ class DungeonFloor:
 		self.Height = height
 		
 		#To-do: write a real level generator
-		#self.Map = self.DummyMap(self.Width, self.Height, Tile)
-		self.Map = self.MakeRoom(self.Width, self.Height)
+		self.Map = self.DummyMap(self.Width, self.Height, self.WallOrNot)
+		self.InsertCellsInMap(3, 3, self.MakeRoom(self.Width-6, self.Height-6))
 		
 		#We maintain a level-wide list of entities as well as a list of Entities on each tile.
 		#This way we don't have to go searching the entire level for Entities.
@@ -141,6 +141,20 @@ class DungeonFloor:
 		bottom[0], bottom[-1] = Tile(bottomleftcorner, True, True), Tile(bottomrightcorner, True, True)
 
 		box = [top] + [[Tile(vertical, True, True)] + [Tile(blank, False, False) for x in range(width-2)] + [Tile(vertical, True, True)] for y in range(height-2)] + [bottom]
+		
+		doorpos = RandomInteger(0, 3)
+		if doorpos == 0:
+			#top side
+			box[0][RandomInteger(1, width-2)] = Tile(blank, False, False)
+		elif doorpos == 1:
+			#right side
+			box[RandomInteger(1, height-2)][-1] = Tile(blank, False, False)
+		elif doorpos == 2:
+			#bottom side
+			box[0][RandomInteger(1, width-2)] = Tile(blank, False, False)
+		elif doorpos == 3:
+			#left side
+			box[RandomInteger(1, height-2)][0] = Tile(blank, False, False)
 		
 		return box
 		
