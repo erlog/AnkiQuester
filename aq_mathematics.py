@@ -102,14 +102,9 @@ def FindPath(floor, sourcex, sourcey, destinationx, destinationy):
 		lowestcost = max(abs(destinationx - sourcex), abs(destinationy - sourcey))
 		
 		#Matrix to use with a list comprehension to grab adjacent tiles
-		adjacenttiles =[(-1, -1), 
-					(-1,  0),
-					(-1,  1),
-					(0,  -1),
-					(0,   1),
-					(1,  -1),
-					(1,   0),
-					(1,   1)]
+		adjacenttiles =[(-1, -1), (-1,  0), (-1,  1), 
+						(0,  -1), 			(0,   1), 
+						(1,  -1), (1,   0),	(1,   1)]
 		
 		opentiles = [(sourcex+tile[0], sourcey+tile[1]) for tile in adjacenttiles]
 		

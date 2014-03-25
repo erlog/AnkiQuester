@@ -13,7 +13,8 @@ class DungeonFloor:
 		self.Height = height
 		
 		#To-do: write a real level generator
-		self.Map = self.DummyMap(self.Width, self.Height, self.WallOrNot)
+		#self.Map = self.DummyMap(self.Width, self.Height, Tile)
+		self.Map = self.MakeRoom(self.Width, self.Height)
 		
 		#We maintain a level-wide list of entities as well as a list of Entities on each tile.
 		#This way we don't have to go searching the entire level for Entities.
@@ -31,7 +32,7 @@ class DungeonFloor:
 	
 	def SpawnRandomEnemy(self):
 		pos = self.RandomPosition()
-		self.PutEntity(Monster(), pos[0], pos[1])
+		self.PutEntity(Rat(), pos[0], pos[1])
 
 	def OutOfBoundsCheck(self, x, y):
 		if (x < 0) or (y < 0) or (x > self.Width-1) or (y > self.Height-1):
@@ -59,13 +60,8 @@ class DungeonFloor:
 							 self.FOVMult[2][oct], self.FOVMult[3][oct], 0)
 	
 	def EventListener(self, event):
-		if event.EventType == aq_event.NextTurn.EventType:
-			self.NextTurn(event)
-	
-	def NextTurn(self, event):
 		for entity in self.Entities:
-			if isinstance(entity, Monster):
-				entity.ChasePlayer(event.GameState.Player, self)
+			entity.EventListener(event)
 				
 	def WallOrNot(self):
 		#To-do: write real dungeon generation code in place of this
@@ -144,7 +140,9 @@ class DungeonFloor:
 		bottom = [Tile(horizontal, True, True) for x in range(width)]
 		bottom[0], bottom[-1] = Tile(bottomleftcorner, True, True), Tile(bottomrightcorner, True, True)
 
-		return [top] + [[Tile(vertical, True, True)] + [Tile(blank, False, False) for x in range(width-2)] + [Tile(vertical, True, True)] for y in range(height-2)] + [bottom]
+		box = [top] + [[Tile(vertical, True, True)] + [Tile(blank, False, False) for x in range(width-2)] + [Tile(vertical, True, True)] for y in range(height-2)] + [bottom]
+		
+		return box
 		
 	def InsertCellsInMap(self, destinationx, destinationy, cells):
 		height = len(cells)

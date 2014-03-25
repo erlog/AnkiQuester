@@ -78,12 +78,11 @@ class ConsoleUserInterface:
 		
 		items = [self.Strings.StatusWindowLabel]
 		
-		#Blank items result in a blank line. Non-blank items map to dictionary keys in Player.Stats
+		#Blank items result in a blank line.
 		displayedstats = [  
 							[self.Strings.HP, self.GameState.Player.HP],
 							[self.Strings.Strength, self.GameState.Player.Strength], 
 							[self.Strings.Speed, self.GameState.Player.Speed],
-							[self.Strings.Luck, self.GameState.Player.Luck],
 							[],
 							[self.Strings.Level, self.GameState.Player.Level],
 							[self.Strings.XP, self.GameState.Player.XP],
