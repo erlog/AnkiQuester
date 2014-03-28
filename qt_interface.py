@@ -65,7 +65,7 @@ class AQ_QT_Interface(QDialog):
 		#To-do: Cut the unreliable lineheight/charwidth metrics out of the equation by using a proper Qt widget implementation
 		self.lineheight = QFontMetrics(self.font).height()
 		self.charwidth = QFontMetrics(self.font).averageCharWidth() + self.font.letterSpacing()
-		self.setGeometry(30, 30, self.charwidth*self.AQUI.ScreenWidth, self.lineheight*self.AQUI.ScreenHeight)
+		self.setGeometry(30, 30, self.charwidth*self.AQUI.ScreenWidth, self.lineheight*self.AQUI.ScreenHeight+5)
 		
 		self.show()
 	
