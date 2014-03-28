@@ -43,9 +43,9 @@ class Entity:
 	
 	def Defend(self, event):
 		#Governs what happens when an entity receives damage.
-		if event.EventDetails[1] == self:
-				enemy = event.EventDetails[0]
-				self.HP -= event.EventDetails[2]
+		if event.EventDetails["Defender"] == self:
+				enemy = event.EventDetails["Attacker"]
+				self.HP -= event.EventDetails["AttackRoll"]
 				if self.HP <= 0:
 					self.HP = 0
 					self.Destroy(event)
@@ -73,7 +73,7 @@ class Monster(Entity):
 		player = event.GameState.Player
 		
 		if self.IsNextToPlayer(event):
-			event.GameState.SendEventToListeners(aq_event.Attack.EventWithDetailsAndGameState( [self, player, self.RollAttack()], event.GameState))
+			event.GameState.SendEventToListeners(aq_event.Attack.EventWithDetailsAndGameState( {"Attacker" : self, "Defender" : player, "AttackRoll" : self.RollAttack()}, event.GameState))
 		else:
 			nextx, nexty = FindPath(event.GameState.CurrentFloor, self.X, self.Y, player.X, player.Y)[0]
 			event.GameState.CurrentFloor.MoveEntity(self, self.X, self.Y, nextx, nexty)
@@ -102,8 +102,8 @@ class Monster(Entity):
 			pass
 	
 	def Attack(self, event):
-		if event.EventDetails[0] == self:
-			enemy = event.EventDetails[1] #the player is the 'enemy' from the monster's perspective
+		if event.EventDetails["Attacker"] == self:
+			enemy = event.EventDetails["Defender"] #the player is the 'enemy' from the monster's perspective
 			if enemy.Defend(event) == 0:
 				event.GameState.CurrentFloor.MoveEntity(self, self.X, self.Y, enemy.X, enemy.Y)
 				self.UpdatePosition(enemy.X, enemy.Y)
@@ -136,8 +136,8 @@ class Player(Entity):
 		self.Name = "erlog"
 	
 	def Attack(self, event):
-		if event.EventDetails[0] == self:
-			enemy = event.EventDetails[1]
+		if event.EventDetails["Attacker"] == self:
+			enemy = event.EventDetails["Defender"]
 			if enemy.Defend(event) == 0:
 				event.GameState.CurrentFloor.SpawnRandomEnemy() #<--this right here is some fucking bullshit that should be handled via proper messaging.
 		

@@ -31,4 +31,4 @@ class AQEvent:
 		
 NextTurn = AQEvent(1)
 PlayerMove = AQEvent(2)
-Attack = AQEvent(3, ["ENTITY: aggressor", "ENTITY: defender", "INT: attack roll"], None, strings.AttackEventMessage)
+Attack = AQEvent(3, {"Attacker" : "ENTITY", "Defender" : "ENTITY", "AttackRoll" : "INTEGER"}, None, strings.AttackEventMessage)

@@ -49,12 +49,12 @@ class ConsoleUserInterface:
 		#Right now our tile is deciding by itself what kind of representation to give us via logic in the str method.
 		#This could be made more extensible in a graphical version later, but is fine as it is for a console version.
 		dungeontiles = self.GameState.CurrentFloor.RenderSlice((self.GameState.Player.Y - self.DungeonHeight/2), 
-														(self.GameState.Player.Y + self.DungeonHeight/2),
-														(self.GameState.Player.X - self.DungeonWidth/2),
-														(self.GameState.Player.X + self.DungeonWidth/2),
-														self.GameState.Player.X,
-														self.GameState.Player.Y,
-														self.GameState.Player.VisionRadius)
+																(self.GameState.Player.Y + self.DungeonHeight/2),
+																(self.GameState.Player.X - self.DungeonWidth/2),
+																(self.GameState.Player.X + self.DungeonWidth/2),
+																self.GameState.Player.X,
+																self.GameState.Player.Y,
+																self.GameState.Player.VisionRadius)
 		
 		lines = []
 		for row in dungeontiles:

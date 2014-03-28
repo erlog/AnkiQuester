@@ -75,7 +75,7 @@ class AnkiQuester:
 			#If we run into an Entity then we want to throw the flashcard up for the user, and then
 			#compute consequences based on the answer.
 			self.DoFlashcard(
-			aq_event.Attack.EventWithDetailsAndGameState( [self.Player, collisioncheck[0], self.Player.RollAttack()], self )
+			aq_event.Attack.EventWithDetailsAndGameState( {"Attacker" : self.Player, "Defender" : collisioncheck[0], "AttackRoll" : self.Player.RollAttack()}, self )
 			)
 			if self.AQDebug:
 				self.ReceiveFlashcardAnswer(RandomInteger(1,2))
