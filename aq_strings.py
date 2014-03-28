@@ -34,6 +34,9 @@ class AQ_Strings:
 		self.EnemyKilled = "Vanquished!"
 		self.Missed = "Missed!"
 		
+		#Event Types
+		self.AttackEventMessage = "{0[0]} attacked {0[1]} for {0[2]} damage."
+		
 		
 		
 		

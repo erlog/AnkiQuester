@@ -133,7 +133,7 @@ class DungeonFloor:
 	def DummyMap(self, width, height, dummyfunction):
 		return [[dummyfunction() for x in range(width)] for y in range(height)]
 	
-	def MakeRoom(self, width, height, horizontal = chr(6), vertical = chr(5), topleftcorner = chr(1), toprightcorner = chr(2), bottomrightcorner = chr(4), bottomleftcorner = chr(3), blank = " "):
+	def MakeRoom(self, width, height, horizontal = chr(6), vertical = chr(5), topleftcorner = chr(1), toprightcorner = chr(2), bottomrightcorner = chr(4), bottomleftcorner = chr(3), blank = "."):
 		top = [Tile(horizontal, True, True) for x in range(width)]
 		top[0], top[-1] = Tile(topleftcorner, True, True), Tile(toprightcorner, True, True)
 		

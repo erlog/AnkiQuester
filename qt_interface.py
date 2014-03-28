@@ -88,6 +88,7 @@ class AQ_QT_Interface(QDialog):
 		elif event.key() == Qt.Key_Left: self.AQState.PlayerMove("Left")
 		elif event.key() == Qt.Key_Right: self.AQState.PlayerMove("Right")
 		elif event.key() == Qt.Key_Space: self.AQState.PlayerMove("Rest")
+		elif event.key() == Qt.Key_Period: self.AQState.PlayerMove("Rest")
 		elif event.key() == Qt.Key_Escape: self.close()
 		self.update()
 	

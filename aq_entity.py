@@ -19,6 +19,7 @@ class Entity:
 		self.VisionRadius = 15
 		
 		self.Glyph = glyph
+		self.Name = glyph
 		
 		self.X = 0
 		self.Y = 0
@@ -44,7 +45,7 @@ class Entity:
 		#Governs what happens when an entity receives damage.
 		if event.EventDetails[1] == self:
 				enemy = event.EventDetails[0]
-				self.HP -= enemy.RollAttack()
+				self.HP -= event.EventDetails[2]
 				if self.HP <= 0:
 					self.HP = 0
 					self.Destroy(event)
@@ -59,8 +60,8 @@ class Entity:
 	
 	def __str__(self):
 		#Warning: This str method could change as other UI methods are supported. 
-		#For the time being it is serving as a stand-in for graphical tile information.
-		return self.Glyph
+		#For the time being it's used as part of the message system.
+		return self.Name
 		
 
 class Monster(Entity):
@@ -72,7 +73,7 @@ class Monster(Entity):
 		player = event.GameState.Player
 		
 		if self.IsNextToPlayer(event):
-			self.Attack(aq_event.Attack.EventWithDetailsAndGameState( [self, player], event.GameState))
+			event.GameState.SendEventToListeners(aq_event.Attack.EventWithDetailsAndGameState( [self, player, self.RollAttack()], event.GameState))
 		else:
 			nextx, nexty = FindPath(event.GameState.CurrentFloor, self.X, self.Y, player.X, player.Y)[0]
 			event.GameState.CurrentFloor.MoveEntity(self, self.X, self.Y, nextx, nexty)
@@ -119,6 +120,7 @@ class Rat(Monster):
 		self.Speed = RandomInteger(1, 2)
 		
 		self.Glyph = "r"
+		self.Name = "rat"
 			
 
 class Player(Entity):
@@ -131,6 +133,7 @@ class Player(Entity):
 		self.Speed = 2
 	
 		self.Glyph = "@"
+		self.Name = "erlog"
 	
 	def Attack(self, event):
 		if event.EventDetails[0] == self:

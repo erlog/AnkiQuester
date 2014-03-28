@@ -11,6 +11,7 @@ from aq_terrain import *
 from aq_console_ui import *
 from aq_strings import *
 from aq_mathematics import *
+from aq_messagehandler import *
 import aq_event;
 
 class AnkiQuester:
@@ -20,7 +21,8 @@ class AnkiQuester:
 		self.CurrentFloor = DungeonFloor(20, 20)
 		self.Player = Player()
 		self.Strings = AQ_Strings()
-		self.EventListeners = [self.CurrentFloor]
+		self.MessageHandler = MessageHandler()
+		self.EventListeners = [self.CurrentFloor, self.MessageHandler]
 	
 		self.PendingEvent = None
 		self.WaitingForFlashcard = False
@@ -28,7 +30,6 @@ class AnkiQuester:
 		self.AQDebug = debug
 		self.AnkiWindow = ankiwindow
 		
-		self.Messages = []
 		self.CurrentTurn = 0
 	
 		self.Player.UpdatePosition(3,3)
@@ -44,7 +45,7 @@ class AnkiQuester:
 	
 	def PlayerMove(self, direction):
 		if self.WaitingForFlashcard == True:
-			self.Messages.append(self.Strings.WaitingForFlashcard)
+			self.MessageHandler.PostMessage(self.Strings.WaitingForFlashcard)
 			return
 		
 		#To-do: write a proper game rules class to handle the details of resolving collisions between entities.
@@ -74,7 +75,7 @@ class AnkiQuester:
 			#If we run into an Entity then we want to throw the flashcard up for the user, and then
 			#compute consequences based on the answer.
 			self.DoFlashcard(
-			aq_event.Attack.EventWithDetailsAndGameState( [self.Player, collisioncheck[0]], self )
+			aq_event.Attack.EventWithDetailsAndGameState( [self.Player, collisioncheck[0], self.Player.RollAttack()], self )
 			)
 			if self.AQDebug:
 				self.ReceiveFlashcardAnswer(RandomInteger(1,2))

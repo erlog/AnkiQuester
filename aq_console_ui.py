@@ -67,10 +67,10 @@ class ConsoleUserInterface:
 		#	Ideally users should be able to filter kinds of messages they receive in a granular fashion to prevent spam.
 		linecount -= 1
 		label = self.Strings.MessageWindowLabel
-		if len(self.GameState.Messages) <= linecount: 
-			return [label] + [(" "+line) for line in self.GameState.Messages]
+		if len(self.GameState.MessageHandler.Messages) <= linecount: 
+			return [label] + [(" "+line) for line in self.GameState.MessageHandler.Messages]
 		else:
-			return [label] + [(" "+line) for line in self.GameState.Messages[-1*linecount:]]
+			return [label] + [(" "+line) for line in self.GameState.MessageHandler.Messages[-1*linecount:]]
 	
 	def StatusWindowItems(self):
 		#To-do: support for user-definable formatting of the Status window via something like lua.
