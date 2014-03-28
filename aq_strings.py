@@ -40,4 +40,3 @@ class AQ_Strings:
 		
 		
 		
-		

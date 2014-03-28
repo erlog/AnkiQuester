@@ -14,6 +14,8 @@ from aq_mathematics import *
 from aq_messagehandler import *
 import aq_event;
 
+
+
 class AnkiQuester:
 	#The main loop and traffic cop for AQ. This class should be concerned only with keeping track
 	#	of game state and providing communication between various classes that make up AQ.

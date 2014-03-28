@@ -8,7 +8,7 @@ from os import linesep
 string = ""
 
 #AnkiQuester imports
-from aq_strings import *
+
 
 class ConsoleUserInterface:
 	def __init__(self, state, screenwidth = 80, screenheight = 40, statuswidth = 15, msgheight = 6):
@@ -28,7 +28,6 @@ class ConsoleUserInterface:
 		self.DungeonHeight = self.ScreenHeight - self.MsgHeight
 		
 		self.GameState = state
-		self.Strings = AQ_Strings()
 	
 	def RenderScreen(self):
 		#Take lists of lines for each screen portion and munge them together into a layout.
@@ -66,7 +65,7 @@ class ConsoleUserInterface:
 		#To-do: support for user-definable formatting of the MessageWindow.
 		#	Ideally users should be able to filter kinds of messages they receive in a granular fashion to prevent spam.
 		linecount -= 1
-		label = self.Strings.MessageWindowLabel
+		label = self.GameState.Strings.MessageWindowLabel
 		if len(self.GameState.MessageHandler.Messages) <= linecount: 
 			return [label] + [(" "+line) for line in self.GameState.MessageHandler.Messages]
 		else:
@@ -76,18 +75,18 @@ class ConsoleUserInterface:
 		#To-do: support for user-definable formatting of the Status window via something like lua.
 		#		This should include robust support for what kind of data to display.
 		
-		items = [self.Strings.StatusWindowLabel]
+		items = [self.GameState.Strings.StatusWindowLabel]
 		
 		#Blank items result in a blank line.
 		displayedstats = [  
-							[self.Strings.HP, self.GameState.Player.HP],
-							[self.Strings.Strength, self.GameState.Player.Strength], 
-							[self.Strings.Speed, self.GameState.Player.Speed],
+							[self.GameState.Strings.HP, self.GameState.Player.HP],
+							[self.GameState.Strings.Strength, self.GameState.Player.Strength], 
+							[self.GameState.Strings.Speed, self.GameState.Player.Speed],
 							[],
-							[self.Strings.Level, self.GameState.Player.Level],
-							[self.Strings.XP, self.GameState.Player.XP],
+							[self.GameState.Strings.Level, self.GameState.Player.Level],
+							[self.GameState.Strings.XP, self.GameState.Player.XP],
 							[],
-							[self.Strings.Turn, self.GameState.CurrentTurn],
+							[self.GameState.Strings.Turn, self.GameState.CurrentTurn],
 						]
 		
 		for line in displayedstats:

@@ -7,9 +7,10 @@
 #with relevant information before being passed around. Placeholder strings
 #for details define what kinds of information should be passed around with the event.
 
-from aq_strings import *
 
-strings = AQ_Strings()
+#To-do: Redo strings class so that we don't have to load 2 instances of AQ_String
+from aq_strings import *
+AQStrings = AQ_Strings()
 
 class AQEvent:
 	def __init__(self, eventtype = None, details = ["No details"], state = None, message = None):
@@ -31,4 +32,4 @@ class AQEvent:
 		
 NextTurn = AQEvent(1)
 PlayerMove = AQEvent(2)
-Attack = AQEvent(3, {"Attacker" : "ENTITY", "Defender" : "ENTITY", "AttackRoll" : "INTEGER"}, None, strings.AttackEventMessage)
+Attack = AQEvent(3, {"Attacker" : "ENTITY", "Defender" : "ENTITY", "AttackRoll" : "INTEGER"}, None, AQStrings.AttackEventMessage)
