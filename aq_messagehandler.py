@@ -13,7 +13,10 @@ class MessageHandler:
 	
 	def EventListener(self, event):
 		if event.EventType not in self.DoNotPrint:
-			self.PostMessage(event.Message.format(**event.EventDetails))
+			if event.EventDetails is not None:
+				self.PostMessage(event.Message.format(**event.EventDetails))
+			else:
+				self.PostMessage(event.Message)
 	
 	def PostMessage(self, message):
 		self.Messages.append(message)

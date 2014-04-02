@@ -13,7 +13,7 @@ from aq_strings import *
 AQStrings = AQ_Strings()
 
 class AQEvent:
-	def __init__(self, eventtype = None, details = ["No details"], state = None, message = None):
+	def __init__(self, eventtype = None, details = None, state = None, message = None):
 		self.EventType = eventtype
 		self.EventDetails = details
 		self.GameState = state
@@ -30,6 +30,8 @@ class AQEvent:
 		return self
 
 		
-NextTurn = AQEvent(1)
-PlayerMove = AQEvent(2)
-Attack = AQEvent(3, {"Attacker" : "ENTITY", "Defender" : "ENTITY", "AttackRoll" : "INTEGER"}, None, AQStrings.AttackEventMessage)
+NextTurn = AQEvent("NextTurn", {"CurrentTurn" : "INTEGER"}, None, AQStrings.NextTurnEventMessage)
+Attack = AQEvent("Attack", {"Attacker" : "ENTITY", "Defender" : "ENTITY", "AttackRoll" : "INTEGER"}, None, AQStrings.AttackEventMessage)
+Collision = AQEvent("Collision", {"Collider" : "ENTITY", "CollidedObject" : "OBJECT"}, None, AQStrings.CollisionEventMessage)
+EntityMove = AQEvent("EntityMove", {"Entity" : "ENTITY", "DestinationXY" : "INTEGERTUPLE"}, None, AQStrings.EntityMoveEventMessage)
+EntityDeath = AQEvent("EntityDeath", {"Entity" : "ENTITY"}, None, AQStrings.EntityDeathEventMessage)

@@ -37,7 +37,7 @@ class AnkiQuester:
 		self.Player.UpdatePosition(3,3)
 		self.CurrentFloor.PutEntity(self.Player, self.Player.X, self.Player.Y)
 	
-	def SendEventToListeners(self, event = None):
+	def SendEventToListeners(self, event):
 		for listener in self.EventListeners:
 			listener.EventListener(event)
 		
@@ -51,41 +51,34 @@ class AnkiQuester:
 			return
 		
 		#To-do: write a proper game rules class to handle the details of resolving collisions between entities.
-		newx = self.Player.X
-		newy = self.Player.Y
+		newx, newy = self.Player.X, self.Player.Y
 		
 		if direction == "Up": newy -= 1
 		elif direction == "Down": newy += 1
 		elif direction == "Left": newx -= 1
 		elif direction == "Right": newx += 1
+		elif direction == "UpLeft": 
+			newx -= 1
+			newy -= 1
+		elif direction == "UpRight":
+			newx += 1
+			newy -= 1
+		elif direction == "DownLeft":
+			newx -= 1
+			newy += 1
+		elif direction == "DownRight":
+			newx += 1
+			newy += 1
 		elif direction == "Rest": 
 			self.NextTurn()
 			return
-
-		collisioncheck = self.CurrentFloor.CollisionCheck(newx, newy)
-		
-		if collisioncheck == True:
-			return
-		
-		elif collisioncheck == False:
-			#To-do: Turn the move order into an event.
-			self.CurrentFloor.MoveEntity(self.Player, self.Player.X, self.Player.Y, newx, newy)
-			self.NextTurn()
-		
-		elif isinstance(collisioncheck[0], Entity):
-		
-			#If we run into an Entity then we want to throw the flashcard up for the user, and then
-			#compute consequences based on the answer.
-			self.DoFlashcard(
-			aq_event.Attack.EventWithDetailsAndGameState( {"Attacker" : self.Player, "Defender" : collisioncheck[0], "AttackRoll" : self.Player.RollAttack()}, self )
-			)
-			if self.AQDebug:
-				self.ReceiveFlashcardAnswer(RandomInteger(1,2))
 			
+		self.SendEventToListeners(aq_event.EntityMove.EventWithDetailsAndGameState({"Entity" : self.Player, "DestinationXY" : (newx, newy)}, self))
+		self.NextTurn()
 	
 	def NextTurn(self):
-		self.SendEventToListeners(aq_event.NextTurn.EventWithGameState(self))
 		self.CurrentTurn += 1
+		self.SendEventToListeners(aq_event.NextTurn.EventWithDetailsAndGameState({"CurrentTurn" : self.CurrentTurn}, self))
 	
 	def DoFlashcard(self, event):
 		self.PendingEvent = event

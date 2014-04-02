@@ -36,7 +36,9 @@ class AQ_Strings:
 		
 		#Event Types
 		self.AttackEventMessage = "{Attacker} attacked {Defender} for {AttackRoll} damage."
-		
-		
+		self.CollisionEventMessage = "{Collider} collided with {CollidedObject}."
+		self.EntityDeathEventMessage = "{Entity} died. How sad."
+		self.NextTurnEventMessage = "It is now turn number {CurrentTurn}."
+		self.EntityMoveEventMessage = "{Entity} attempted to move to {DestinationXY}."
 		
 		

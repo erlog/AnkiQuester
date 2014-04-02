@@ -25,9 +25,17 @@ class Entity:
 		self.Y = 0
 		
 	def EventListener(self, event):
-		#Right now this is dummied out because I'm not sure exactly what kind of
-		#default behavior I want inherited.
-		pass
+		if event.EventType == aq_event.EntityMove.EventType:
+			if event.EventDetails["Entity"] == self: 
+				self.EntityMove(event)
+	
+	def EntityMove(self, event):
+		entity = event.EventDetails["Entity"]
+		newx, newy = event.EventDetails["DestinationXY"][0], event.EventDetails["DestinationXY"][1]
+		collisioncheck = event.GameState.CurrentFloor.CollisionCheck(newx, newy)
+		if collisioncheck == False:
+			event.GameState.CurrentFloor.MoveEntity(self, self.X, self.Y, newx, newy)
+
 	
 	def UpdatePosition(self, destinationx, destinationy):
 		#This function is for keeping track of informational variables only.
@@ -53,6 +61,7 @@ class Entity:
 	
 	def Destroy(self, event):
 		event.GameState.CurrentFloor.RemoveEntity(self)
+		event.GameState.SendEventToListeners(aq_event.EntityDeath.EventWithDetailsAndGameState( {"Entity" : self}, event.GameState ))
 	
 	def Status(self):
 		#Convenience function mostly for debug.
@@ -76,8 +85,7 @@ class Monster(Entity):
 			event.GameState.SendEventToListeners(aq_event.Attack.EventWithDetailsAndGameState( {"Attacker" : self, "Defender" : player, "AttackRoll" : self.RollAttack()}, event.GameState))
 		else:
 			nextx, nexty = FindPath(event.GameState.CurrentFloor, self.X, self.Y, player.X, player.Y)[0]
-			event.GameState.CurrentFloor.MoveEntity(self, self.X, self.Y, nextx, nexty)
-			self.UpdatePosition(nextx, nexty)
+			event.GameState.SendEventToListeners(aq_event.EntityMove.EventWithDetailsAndGameState({"Entity" : self, "DestinationXY" : (nextx, nexty)}, event.GameState))
 		
 	
 	def IsNextToPlayer(self, event):
@@ -96,6 +104,9 @@ class Monster(Entity):
 	def EventListener(self, event):
 		if event.EventType == aq_event.Attack.EventType:
 			self.Attack(event)
+		elif event.EventType == aq_event.EntityMove.EventType:
+			if event.EventDetails["Entity"] == self: 
+				self.EntityMove(event)
 		elif event.EventType == aq_event.NextTurn.EventType:
 			self.ChasePlayer(event)
 		else:
@@ -141,9 +152,28 @@ class Player(Entity):
 			if enemy.Defend(event) == 0:
 				event.GameState.CurrentFloor.SpawnRandomEnemy() #<--this right here is some fucking bullshit that should be handled via proper messaging.
 		
+	def PlayerMove(self, event):
+		entity = event.EventDetails["Entity"]
+		newx, newy = event.EventDetails["DestinationXY"][0], event.EventDetails["DestinationXY"][1]
+		collisioncheck = event.GameState.CurrentFloor.CollisionCheck(newx, newy)
+		
+		if (collisioncheck != True) and (collisioncheck != False) and isinstance(collisioncheck[0], Entity) and (collisioncheck[0] != self):
+			#If we run into an Entity then we want to throw the flashcard up for the user, and then
+			#compute attack consequences based on the answer.
+			event.GameState.DoFlashcard(
+			aq_event.Attack.EventWithDetailsAndGameState( {"Attacker" : self, "Defender" : collisioncheck[0], "AttackRoll" : self.RollAttack()}, event.GameState )
+			)
+			if event.GameState.AQDebug:
+				event.GameState.ReceiveFlashcardAnswer(RandomInteger(1,2))
+	
 	def EventListener(self, event):
 		if event.EventType == aq_event.Attack.EventType:
 			self.Attack(event)
+		elif event.EventType == aq_event.EntityMove.EventType:
+			if event.EventDetails["Entity"] == self:
+				self.EntityMove(event)
+				self.PlayerMove(event)
+				
 	
 	def GiveXP(self, entity, xp):
 		#To-do: allow for arbitrary experience curves that can change based on player class/race

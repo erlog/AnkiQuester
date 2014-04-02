@@ -68,6 +68,7 @@ class AQ_QT_Interface(QDialog):
 		self.setGeometry(30, 30, self.charwidth*self.AQUI.ScreenWidth, self.lineheight*self.AQUI.ScreenHeight+5)
 		
 		self.show()
+		pyqtRemoveInputHook()
 	
 	def paintEvent(self, event):
 		qp = QPainter()
@@ -83,10 +84,14 @@ class AQ_QT_Interface(QDialog):
 		#To-do: Remove this Qt input crutch and write a proper console input controller or a real Qt interface
 		if event.key() == Qt.Key_F2:
 			if AQ_DEBUG: qt_trace(self.AQUI)
-		elif event.key() == Qt.Key_Up: self.AQState.PlayerMove("Up")
-		elif event.key() == Qt.Key_Down: self.AQState.PlayerMove("Down")
-		elif event.key() == Qt.Key_Left: self.AQState.PlayerMove("Left")
-		elif event.key() == Qt.Key_Right: self.AQState.PlayerMove("Right")
+		elif (event.key() == Qt.Key_Up) or (event.key() == Qt.Key_K): self.AQState.PlayerMove("Up")
+		elif (event.key() == Qt.Key_Down) or (event.key() == Qt.Key_J): self.AQState.PlayerMove("Down")
+		elif (event.key() == Qt.Key_Left) or (event.key() == Qt.Key_H): self.AQState.PlayerMove("Left")
+		elif (event.key() == Qt.Key_Right) or (event.key() == Qt.Key_L): self.AQState.PlayerMove("Right")
+		elif event.key() == Qt.Key_Y: self.AQState.PlayerMove("UpLeft")
+		elif event.key() == Qt.Key_U: self.AQState.PlayerMove("UpRight")
+		elif event.key() == Qt.Key_B: self.AQState.PlayerMove("DownLeft")
+		elif event.key() == Qt.Key_N: self.AQState.PlayerMove("DownRight")
 		elif event.key() == Qt.Key_Space: self.AQState.PlayerMove("Rest")
 		elif event.key() == Qt.Key_Period: self.AQState.PlayerMove("Rest")
 		elif event.key() == Qt.Key_Escape: self.close()
