@@ -34,7 +34,7 @@ class AnkiQuester:
 		
 		self.CurrentTurn = 0
 	
-		self.Player.UpdatePosition(3,3)
+		self.Player.UpdatePosition(3, 3)
 		self.CurrentFloor.PutEntity(self.Player, self.Player.X, self.Player.Y)
 	
 	def SendEventToListeners(self, event):

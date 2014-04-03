@@ -15,6 +15,7 @@ class DungeonFloor:
 		#To-do: write a real level generator
 		self.Map = self.DummyMap(self.Width, self.Height, self.WallOrNot)
 		self.InsertCellsInMap(3, 3, self.MakeRoom(self.Width-6, self.Height-6))
+		self.IndexMap()
 		
 		#We maintain a level-wide list of entities as well as a list of Entities on each tile.
 		#This way we don't have to go searching the entire level for Entities.
@@ -28,7 +29,7 @@ class DungeonFloor:
 				]
 		
 		#The below is a convenience function for debug purposes.
-		self.SpawnRandomEnemy()
+		self.PutEntity(Rat(), 4, 9)
 	
 	def SpawnRandomEnemy(self):
 		pos = self.RandomPosition()
@@ -95,6 +96,19 @@ class DungeonFloor:
 			return False
 		else:
 			return self.Map[y][x]
+	
+	def GetAdjacentTiles(self, sourcex, sourcey):
+		#Matrix to use with a list comprehension to grab adjacent tiles
+		adjacentmatrix =[(-1, -1), (-1,  0), (-1,  1), 
+						(0,  -1), 			(0,   1), 
+						(1,  -1), (1,   0),	(1,   1)]
+						
+		adjacenttiles = []
+			
+		for tile in [self.GetTile(sourcex+tile[0], sourcey+tile[1]) for tile in adjacentmatrix]:
+			if tile: adjacenttiles.append(tile)
+				
+		return adjacenttiles
 	
 	def PutEntity(self, entity, x, y):
 		self.Map[y][x].Entities.append(entity)
@@ -164,23 +178,38 @@ class DungeonFloor:
 		for y in range(height):
 			for x in range(width):
 				self.Map[destinationy + y][destinationx + x] = cells[y][x]
-		
+	
+	def IndexMap(self):
+		#Adds X, Y coordinate information to each tile.
+		[[self.GetTile(x, y).UpdatePosition(x, y) for x in range(self.Width)] for y in range(self.Height)]
 			
 
 class Tile:
 	#The tiles that make up our dungeon. This could be extended later to include other properties such as slippery ice or lakes.
-	def __init__(self, glyph = " ", barrier = False, opaque = False):
+	def __init__(self, glyph = " ", barrier = False, opaque = False, x = None, y = None):
 		self.Glyph = glyph
 		self.Barrier = barrier
 		self.Opaque = opaque
 		self.Lit = False
 		self.Seen = False
 		
-		#We may at some point in the future allow multiple entities to share a tile.
+		#Similar to the coordinates on Entities, these are for informational purposes only.
+		self.X = x 
+		self.Y = y
+		
 		#Entity order on the tile matters, and the order is interpreted to be bottom->top.
 		#These same rules apply for objects.
 		self.Entities = []
 		self.Objects = []
+
+		#These are used by the mathematics function to store pathfinding information.
+		self.AStarCost = None
+		self.AStarParent = None
+	
+	def UpdatePosition(self, destinationx, destinationy):
+		#This function is for keeping track of informational variables only.
+		#Use of this function does not move the entity.
+		self.X, self.Y = destinationx, destinationy
 	
 	def SetLit(self, status = True):
 		self.Lit = status
@@ -188,7 +217,7 @@ class Tile:
 	def __str__(self):
 		#Warning: This str method could change as other UI methods are supported. 
 		#For the time being it is serving as a stand-in for graphical tile information.
-		
+
 		#Entities > Objects > Terrain
 		if self.Lit:
 			if self.Entities:

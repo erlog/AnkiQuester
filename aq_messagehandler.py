@@ -9,7 +9,7 @@ import aq_event
 class MessageHandler:
 	def __init__(self):
 		self.Messages = []
-		self.DoNotPrint = [aq_event.NextTurn.EventType]
+		self.DoNotPrint = [aq_event.NextTurn.EventType, aq_event.EntityMove.EventType]
 	
 	def EventListener(self, event):
 		if event.EventType not in self.DoNotPrint:

@@ -4,7 +4,7 @@
 #could probably be moved to NumPy in the future if need be.
 
 #Standard Library Imports
-from random import randint
+import random
 
 def Pad2DArray(toppadding, bottompadding, leftpadding, rightpadding, array, paddingobject):
 		emptyrow = [paddingobject for x in range(leftpadding + len(array[0]) + rightpadding)]
@@ -93,36 +93,50 @@ def Cast_Light(floor, cx, cy, row, start, end, radius, xx, xy, yx, yy, id):
 				break				
 				
 def FindPath(floor, sourcex, sourcey, destinationx, destinationy):
-		#This is an A* algorithm in the process of being written.
-		#Right now it just searches adjacent tiles and chooses the lowest cost one.
-		#In the future this should be completed in order to have true pathfinding.
-		#This function should return the list of tiles that represent the path.
+		#This is an unoptimized A* algorithm.
+		#This function should return the list of tiles that represent the path in reverse order.
 		
-		#Lowest possible number of moves to reach destination
-		lowestcost = max(abs(destinationx - sourcex), abs(destinationy - sourcey))
+		sourcetile = floor.GetTile(sourcex, sourcey)
+		destinationtile = floor.GetTile(destinationx, destinationy)
 		
-		#Matrix to use with a list comprehension to grab adjacent tiles
-		adjacenttiles =[(-1, -1), (-1,  0), (-1,  1), 
-						(0,  -1), 			(0,   1), 
-						(1,  -1), (1,   0),	(1,   1)]
+		sourcetile.AStarCost = abs(max( (destinationx - sourcex), abs(destinationy - sourcey) ))
 		
-		opentiles = [(sourcex+tile[0], sourcey+tile[1]) for tile in adjacenttiles]
+		evaluatednodes = []
+		pendingnodes = [sourcetile]
 		
-		#Keep a dictionary of movement costs with the list of tiles that have that cost
-		tilecosts = {}
-		for tile in opentiles:
-			if floor.CollisionCheck(tile[0], tile[1]) == False:
-				cost = max(abs(tile[0] - sourcex), abs(tile[1] - sourcey)) + max(abs(destinationx - tile[0]), abs(destinationy - tile[1]))
-				if cost in tilecosts:
-					tilecosts[cost].append(tile)
-				else:
-					tilecosts[cost] = [tile]
-		
-		#Grab a random tile from the list of tiles with the minimum cost.
-		return [RandomItem(tilecosts[min(tilecosts.keys())])]
+		while pendingnodes:
+			currentnode = pendingnodes.pop()
+			evaluatednodes.append(currentnode)
+			
+			if currentnode == destinationtile:
+					pathnodes = []
+					pathnode = currentnode
+					while pathnode.AStarParent != sourcetile:
+						pathnode = pathnode.AStarParent
+						pathnodes.append(pathnode)
+					return pathnodes
+						
+			else:
+				adjacentnodes = floor.GetAdjacentTiles(currentnode.X, currentnode.Y)
+				for node in adjacentnodes:
+					if (node not in evaluatednodes) and (node not in pendingnodes) and (not node.Barrier):
+						node.AStarParent = currentnode
+						
+						#Cost heuristic is the distance from start node to here plus distance from here to destination
+						node.AStarCost = abs(max( (node.X - sourcex), abs(node.Y - sourcey) )) + abs(max( (destinationx - node.X), abs(destinationy - node.Y) ))
+						
+						#Make sure our list is ordered from shortest to longest
+						if (pendingnodes) and (node.AStarCost <= pendingnodes[-1].AStarCost):
+							pendingnodes.append(node)
+						else:
+							pendingnodes.insert(0, node)
+		return False
+	
+def ShuffleList(list):
+	random.shuffle(list)
 	
 def RandomInteger(minimum, maximum):
-	return randint(minimum, maximum)
+	return random.randint(minimum, maximum)
 
 def RandomItem(list):
-	return list[randint(0, len(list)-1)]
+	return list[random.randint(0, len(list)-1)]

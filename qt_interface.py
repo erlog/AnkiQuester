@@ -68,7 +68,6 @@ class AQ_QT_Interface(QDialog):
 		self.setGeometry(30, 30, self.charwidth*self.AQUI.ScreenWidth, self.lineheight*self.AQUI.ScreenHeight+5)
 		
 		self.show()
-		pyqtRemoveInputHook()
 	
 	def paintEvent(self, event):
 		qp = QPainter()
