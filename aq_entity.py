@@ -40,8 +40,7 @@ class Entity:
 	def UpdatePosition(self, destinationx, destinationy):
 		#This function is for keeping track of informational variables only.
 		#Use of this function does not move the entity.
-		self.X = destinationx
-		self.Y = destinationy
+		self.X, self.Y = destinationx, destinationy
 	
 	def RollAttack(self, event = None):
 		#This may need to be moved into some kind of overarching class that governs

@@ -55,9 +55,9 @@ class DungeonFloor:
 		#The area around the player is split into 8 rectangular areas.
 		#This convenience function uses math to compute the shape of each of these areas.
 		for oct in range(8):
-			Cast_Light(self, x, y, 1, 1.0, 0.0, radius,
-							 self.FOVMult[0][oct], self.FOVMult[1][oct],
-							 self.FOVMult[2][oct], self.FOVMult[3][oct], 0)
+			Cast_Light(	self, x, y, 1, 1.0, 0.0, radius,
+						self.FOVMult[0][oct], self.FOVMult[1][oct],
+						self.FOVMult[2][oct], self.FOVMult[3][oct], 0)
 	
 	def EventListener(self, event):
 		for entity in self.Entities:
@@ -88,7 +88,7 @@ class DungeonFloor:
 			return False
 	
 	def RandomPosition(self):
-		return RandomInteger(0, self.Width-1), randint(0, self.Height-1)
+		return RandomInteger(0, self.Width-1), RandomInteger(0, self.Height-1)
 	
 	def GetTile(self, x, y):
 		if self.OutOfBoundsCheck(x, y):
