@@ -197,6 +197,7 @@ class Tile:
 		self.X = x 
 		self.Y = y
 		
+		
 		#Entity order on the tile matters, and the order is interpreted to be bottom->top.
 		#These same rules apply for objects.
 		self.Entities = []

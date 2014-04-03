@@ -83,10 +83,11 @@ class Monster(Entity):
 		if self.IsNextToPlayer(event):
 			event.GameState.SendEventToListeners(aq_event.Attack.EventWithDetailsAndGameState( {"Attacker" : self, "Defender" : player, "AttackRoll" : self.RollAttack()}, event.GameState))
 		else:
-			nexttile = FindPath(event.GameState.CurrentFloor, self.X, self.Y, player.X, player.Y)[-1]
-			nextx, nexty = nexttile.X, nexttile.Y
-			event.GameState.SendEventToListeners(aq_event.EntityMove.EventWithDetailsAndGameState({"Entity" : self, "DestinationXY" : (nextx, nexty)}, event.GameState))
-		
+			nexttile = FindPath(event.GameState.CurrentFloor, self.X, self.Y, player.X, player.Y)
+			if nexttile != False:
+				nextx, nexty = nexttile[-1].X, nexttile[-1].Y
+				event.GameState.SendEventToListeners(aq_event.EntityMove.EventWithDetailsAndGameState({"Entity" : self, "DestinationXY" : (nextx, nexty)}, event.GameState))
+			
 	
 	def IsNextToPlayer(self, event):
 		#Offsets for adjacent tiles
