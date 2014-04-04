@@ -61,6 +61,9 @@ class AQ_QT_Interface(QDialog):
 		self.setWindowTitle('AnkiQuest')
 		self.setStyleSheet("background-color: black")
 		
+		#self.testimage = QImage()
+		#self.testimage.load("gold.png")
+		
 		#This is a kludge right now until I bother to learn more about Qt
 		#To-do: Cut the unreliable lineheight/charwidth metrics out of the equation by using a proper Qt widget implementation
 		self.lineheight = QFontMetrics(self.font).height()
@@ -76,6 +79,7 @@ class AQ_QT_Interface(QDialog):
 		qp.setPen(QColor("White"))
 		self.text = self.AQUI.RenderScreen()
 		qp.drawText(QRectF(self.rect()), self.text, self.fontoptions)
+		#qp.drawImage(QPoint(10,10), self.testimage)
 		qp.end()
 		
 	def keyPressEvent(self, event):
